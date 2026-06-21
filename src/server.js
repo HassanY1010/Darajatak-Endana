@@ -108,7 +108,10 @@ app.use(notFound);
 app.use(errorHandler);
 
 app.listen(config.port, () => {
-  scheduleCleanup();
+  const db = require('./database/db');
+  db.ready
+    .then(() => scheduleCleanup())
+    .catch(() => {});
   console.log('═══════════════════════════════════════════');
   console.log('🏍️  دراجتك علينا — الخادم يعمل');
   console.log(`🌐 http://localhost:${config.port}`);

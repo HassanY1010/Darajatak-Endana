@@ -100,10 +100,11 @@ async function migrate() {
   }
 }
 
-// تشغيل الهجرة تلقائياً
-migrate();
+// تشغيل الهجرة تلقائياً وتصدير الـ Promise لتمكين الانتظار
+const ready = migrate();
 
 module.exports = {
   query: (text, params) => pool.query(text, params),
-  pool
+  pool,
+  ready
 };

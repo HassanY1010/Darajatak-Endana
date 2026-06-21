@@ -1,4 +1,5 @@
 // تشغيل تلقائي عند بدء الخادم: التأكد من وجود حسابات المدراء الأربعة
+// ينتظر اكتمال إنشاء الجداول أولاً قبل إدخال البيانات
 const bcrypt = require('bcryptjs');
 const db = require('./database/db');
 
@@ -31,4 +32,7 @@ async function seedAdmins() {
   }
 }
 
-seedAdmins();
+// انتظار اكتمال إنشاء الجداول قبل إدخال البيانات
+db.ready
+  .then(() => seedAdmins())
+  .catch(err => console.error('❌ فشل الانتظار للجداول:', err.message));
