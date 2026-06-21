@@ -20,7 +20,7 @@ async function uploadImage(filename, buffer, mimetype) {
   }
 
   const { data, error } = await supabase.storage
-    .from('motorcycles')
+    .from(config.supabase.bucket)
     .upload(filename, buffer, {
       contentType: mimetype,
       upsert: true
@@ -31,7 +31,7 @@ async function uploadImage(filename, buffer, mimetype) {
   }
 
   const { data: { publicUrl } } = supabase.storage
-    .from('motorcycles')
+    .from(config.supabase.bucket)
     .getPublicUrl(filename);
 
   return publicUrl;
@@ -49,7 +49,7 @@ async function deleteImage(imageUrl) {
   const filename = imageUrl.split('/').pop();
   if (filename) {
     try {
-      await supabase.storage.from('motorcycles').remove([filename]);
+      await supabase.storage.from(config.supabase.bucket).remove([filename]);
       console.log(`✅ تم حذف الصورة من Supabase storage: ${filename}`);
     } catch (e) {
       console.error(`❌ فشل حذف الصورة من Supabase storage: ${filename}`, e.message);
