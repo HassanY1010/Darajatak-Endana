@@ -9,9 +9,6 @@
   function fill(m) {
     g('f-title').value = m.title || '';
     g('f-brand').value = m.brand || '';
-    g('f-model').value = m.model || '';
-    g('f-color').value = m.color || '';
-    g('f-city').value = m.city || '';
     g('f-price').value = m.price || '';
     g('f-currency').value = m.currency || 'SAR';
     g('f-status').value = m.status || 'available';
@@ -21,9 +18,8 @@
 
   function collect() {
     return {
-      title: g('f-title').value, brand: g('f-brand').value, model: g('f-model').value,
-      color: g('f-color').value,
-      city: g('f-city').value, price: g('f-price').value, currency: g('f-currency').value, status: g('f-status').value,
+      title: g('f-title').value, brand: g('f-brand').value,
+      price: g('f-price').value, currency: g('f-currency').value, status: g('f-status').value,
       description: g('f-description').value, negotiable: g('f-negotiable').checked
     };
   }

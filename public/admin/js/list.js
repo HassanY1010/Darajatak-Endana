@@ -31,7 +31,7 @@
 
   async function load() {
     const tbody = document.getElementById('tbody');
-    tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center"><div class="spinner mx-auto"></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="p-10 text-center"><div class="spinner mx-auto"></div></td></tr>';
     const p = new URLSearchParams();
     const s = document.getElementById('search').value.trim();
     if (s) p.set('search', s);
@@ -44,14 +44,14 @@
       const res = await API.motorcycles(p.toString());
       render(res);
     } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="9" class="p-10 text-center text-red-400">${e.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-red-400">${e.message}</td></tr>`;
     }
   }
 
   function render({ data, total, page, limit }) {
     const tbody = document.getElementById('tbody');
     if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="9" class="p-10 text-center text-gray-500">لا توجد دراجات.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="p-10 text-center text-gray-500">لا توجد دراجات.</td></tr>';
       document.getElementById('pagination').innerHTML = '';
       return;
     }
@@ -60,7 +60,6 @@
         <td data-label=""><img src="${Utils.img(m.main_image)}" class="w-14 h-14 rounded-xl object-cover" alt=""></td>
         <td data-label="الاسم"><div class="font-bold">${m.title}</div><div class="text-xs text-gray-400">${m.brand}</div></td>
         <td data-label="السعر" class="font-bold whitespace-nowrap text-gold">${Utils.formatPrice(m.price, m.currency)}</td>
-        <td data-label="المدينة">${m.city}</td>
         <td data-label="الحالة">${statusSelect(m)}</td>
         <td data-label="المشاهدات" class="text-center">${viewsCell(m.views)}</td>
         <td data-label="الصلاحية" class="text-center">${expiryCell(m.expiresAt || m.expires_at)}</td>

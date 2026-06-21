@@ -10,7 +10,7 @@ const MotorcycleModel = {
   /**
    * جلب قائمة الدراجات مع فلترة/بحث/ترتيب/ترقيم صفحات
    */
-  async list({ search, city, brand, status, minPrice, maxPrice, sort, page = 1, limit = 12, includeExpired = false } = {}) {
+  async list({ search, brand, status, minPrice, maxPrice, sort, page = 1, limit = 12, includeExpired = false } = {}) {
     const where = [];
     const params = [];
     let idx = 1;
@@ -20,13 +20,8 @@ const MotorcycleModel = {
     }
 
     if (search) {
-      where.push(`(title ILIKE $${idx} OR brand ILIKE $${idx} OR model ILIKE $${idx} OR city ILIKE $${idx})`);
+      where.push(`(title ILIKE $${idx} OR brand ILIKE $${idx})`);
       params.push(`%${search}%`);
-      idx++;
-    }
-    if (city) {
-      where.push(`city = $${idx}`);
-      params.push(city);
       idx++;
     }
     if (brand) {
@@ -115,11 +110,11 @@ const MotorcycleModel = {
     const s = sanitize(data);
     const res = await db.query(`
       INSERT INTO motorcycles
-        (title, brand, model, color, city, price, currency, description, status, negotiable, main_image, created_by, expires_at)
+        (title, brand, price, currency, description, status, negotiable, main_image, created_by, expires_at)
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW() + INTERVAL '30 days')
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW() + INTERVAL '30 days')
       RETURNING id
-    `, [s.title, s.brand, s.model, s.color, s.city, s.price, s.currency, s.description, s.status, s.negotiable, s.main_image, s.created_by]);
+    `, [s.title, s.brand, s.price, s.currency, s.description, s.status, s.negotiable, s.main_image, s.created_by]);
     return this.findById(res.rows[0].id);
   },
 
@@ -130,12 +125,11 @@ const MotorcycleModel = {
     const merged = { ...current, ...sanitize(data) };
     await db.query(`
       UPDATE motorcycles SET
-        title=$1, brand=$2, model=$3, color=$4,
-        city=$5, price=$6, currency=$7, description=$8,
-        status=$9, negotiable=$10,
+        title=$1, brand=$2, price=$3, currency=$4, description=$5,
+        status=$6, negotiable=$7,
         updated_at=NOW()
-      WHERE id=$11
-    `, [merged.title, merged.brand, merged.model, merged.color, merged.city, merged.price, merged.currency, merged.description, merged.status, merged.negotiable, id]);
+      WHERE id=$8
+    `, [merged.title, merged.brand, merged.price, merged.currency, merged.description, merged.status, merged.negotiable, id]);
     return this.findById(id);
   },
 
@@ -258,11 +252,10 @@ const MotorcycleModel = {
 
   async distinctValues() {
     const active = "expires_at >= NOW()";
-    const citiesRes = await db.query(`SELECT DISTINCT city FROM motorcycles WHERE ${active} AND city IS NOT NULL ORDER BY city`);
     const brandsRes = await db.query(`SELECT DISTINCT brand FROM motorcycles WHERE ${active} AND brand IS NOT NULL ORDER BY brand`);
     
     return {
-      cities: citiesRes.rows.map(r => r.city),
+      cities: [],
       brands: brandsRes.rows.map(r => r.brand)
     };
   },
@@ -315,9 +308,6 @@ function sanitize(data) {
   return {
     title: String(data.title || '').trim(),
     brand: String(data.brand || '').trim(),
-    model: data.model != null ? String(data.model).trim() : null,
-    color: data.color != null ? String(data.color).trim() : null,
-    city: String(data.city || '').trim(),
     price: data.price != null ? Number(data.price) : 0,
     currency: ['SAR', 'YER'].includes(data.currency) ? data.currency : 'SAR',
     description: data.description != null ? String(data.description).trim() : null,

@@ -106,7 +106,7 @@
           <img src="${Utils.img(m.main_image)}" class="w-12 h-12 rounded-lg object-cover" alt="">
           <div class="flex-1 min-w-0">
             <div class="font-bold truncate">${m.title}</div>
-            <div class="text-xs text-gray-400">${m.city} • ${Utils.formatPrice(m.price, m.currency)}</div>
+            <div class="text-xs text-gray-400">${Utils.formatPrice(m.price, m.currency)}</div>
           </div>
           <span class="text-xs px-2 py-1 rounded-full ${Utils.statusBadgeClass(m.status)}">${Utils.statusLabel(m.status)}</span>
         </a>`).join('') : '<p class="text-gray-500 text-sm">لا توجد دراجات بعد.</p>';

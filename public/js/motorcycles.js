@@ -8,7 +8,6 @@
   function getFilters() {
     return {
       search:   ($('q-search') && $('q-search').value.trim()) || '',
-      city:     ($('f-city') && $('f-city').value) || '',
       brand:    ($('f-brand') && $('f-brand').value) || '',
       status:   ($('f-status') && $('f-status').value) || '',
       sort:     ($('sort-select') && $('sort-select').value) || 'newest',
@@ -21,7 +20,6 @@
     const p = new URLSearchParams();
     const f = getFilters();
     if (f.search) p.set('search', f.search);
-    if (f.city) p.set('city', f.city);
     if (f.brand) p.set('brand', f.brand);
     if (f.status) p.set('status', f.status);
     if (f.sort && f.sort !== 'newest') p.set('sort', f.sort);
@@ -36,7 +34,6 @@
     const p = new URLSearchParams();
     const f = getFilters();
     if (f.search) p.set('search', f.search);
-    if (f.city) p.set('city', f.city);
     if (f.brand) p.set('brand', f.brand);
     if (f.status) p.set('status', f.status);
     if (f.sort && f.sort !== 'newest') p.set('sort', f.sort);
@@ -51,7 +48,6 @@
     const f = getFilters();
     const chips = [];
     if (f.search) chips.push({ key: 'search', label: '"' + f.search + '"' });
-    if (f.city) chips.push({ key: 'city', label: f.city });
     if (f.brand) chips.push({ key: 'brand', label: f.brand });
     if (f.status) chips.push({ key: 'status', label: ({ available: 'متاح', sold: 'تم البيع' })[f.status] || f.status });
     if (f.minPrice) chips.push({ key: 'minPrice', label: '≥ ' + Number(f.minPrice).toLocaleString('ar-SA') + ' ريال سعودي' });
@@ -67,7 +63,6 @@
       btn.addEventListener('click', () => {
         const key = btn.dataset.key;
         if (key === 'search' && $('q-search')) $('q-search').value = '';
-        else if (key === 'city' && $('f-city')) $('f-city').value = '';
         else if (key === 'brand' && $('f-brand')) $('f-brand').value = '';
         else if (key === 'status' && $('f-status')) $('f-status').value = '';
         else if (key === 'minPrice' && $('f-min-price')) $('f-min-price').value = '';
@@ -136,7 +131,6 @@
   function readURLParams() {
     const params = new URLSearchParams(location.search);
     if (params.get('search') && $('q-search')) $('q-search').value = params.get('search');
-    if (params.get('city') && $('f-city')) $('f-city').value = params.get('city');
     if (params.get('brand') && $('f-brand')) $('f-brand').value = params.get('brand');
     if (params.get('status') && $('f-status')) $('f-status').value = params.get('status');
     if (params.get('sort') && $('sort-select')) $('sort-select').value = params.get('sort');
@@ -154,7 +148,7 @@
       });
       searchEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { clearTimeout(window._sd); state.page = 1; load(); } });
     }
-    [$('f-city'), $('f-brand'), $('f-status'), $('sort-select')].forEach(el => {
+    [$('f-brand'), $('f-status'), $('sort-select')].forEach(el => {
       if (el) el.addEventListener('change', () => { state.page = 1; load(); });
     });
     var goBtn = $('filter-go-btn');

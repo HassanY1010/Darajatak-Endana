@@ -32,9 +32,6 @@ async function migrate() {
         id          SERIAL PRIMARY KEY,
         title       TEXT NOT NULL,
         brand       TEXT NOT NULL,
-        model       TEXT,
-        color       TEXT,
-        city        TEXT NOT NULL,
         price       DOUBLE PRECISION NOT NULL DEFAULT 0,
         currency    TEXT NOT NULL DEFAULT 'SAR',
         description TEXT,
@@ -71,10 +68,17 @@ async function migrate() {
 
       CREATE INDEX IF NOT EXISTS idx_images_moto ON images(motorcycle_id);
       CREATE INDEX IF NOT EXISTS idx_moto_status ON motorcycles(status);
-      CREATE INDEX IF NOT EXISTS idx_moto_city ON motorcycles(city);
       CREATE INDEX IF NOT EXISTS idx_moto_brand ON motorcycles(brand);
       CREATE INDEX IF NOT EXISTS idx_views_moto_ip ON views_log(motorcycle_id, ip_address);
       CREATE INDEX IF NOT EXISTS idx_views_created ON views_log(created_at);
+    `);
+
+    // هجرة قاعدة البيانات: حذف الأعمدة القديمة ومؤشراتها إن وجدت في البيئة الإنتاجية
+    await pool.query(`
+      ALTER TABLE motorcycles DROP COLUMN IF EXISTS model;
+      ALTER TABLE motorcycles DROP COLUMN IF EXISTS color;
+      ALTER TABLE motorcycles DROP COLUMN IF EXISTS city;
+      DROP INDEX IF EXISTS idx_moto_city;
     `);
 
     // إعدادات افتراضية للموقع

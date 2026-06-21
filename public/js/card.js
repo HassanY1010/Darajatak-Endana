@@ -23,7 +23,6 @@ function renderCard(m) {
       <div class="moto-card-body">
         <div class="moto-card-title" title="${m.title}">${m.title}</div>
         <div class="moto-card-price">${Utils.formatPrice(m.price, m.currency)}</div>
-        <div class="moto-card-city"><i class="fas fa-location-dot"></i> ${m.city}</div>
         <a href="${waLink}" target="_blank" class="btn-whatsapp moto-card-wa ${isSold ? 'opacity-50 pointer-events-none' : 'whatsapp-pulse'}" onclick="event.stopPropagation()">
           <i class="fab fa-whatsapp"></i> تواصل
         </a>

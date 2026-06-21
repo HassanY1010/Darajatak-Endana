@@ -11,9 +11,6 @@ function validateMotorcycle(req, res, next) {
   if (!b.brand || String(b.brand).trim().length < 1) {
     errors.push('الشركة المصنّعة مطلوبة');
   }
-  if (!b.city || String(b.city).trim().length < 1) {
-    errors.push('المدينة مطلوبة');
-  }
   if (b.price == null || isNaN(Number(b.price)) || Number(b.price) < 0) {
     errors.push('السعر مطلوب ويجب أن يكون رقماً موجباً');
   }

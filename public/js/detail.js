@@ -22,9 +22,9 @@
     const waLink = Utils.whatsappLink(phone, m);
 
     document.title = m.title + ' | دراجتك عندنا';
-    setMeta('description', m.title + ' — ' + m.brand + ' ' + (m.model||'') + ' في ' + m.city + ' بسعر ' + Utils.formatPrice(m.price, m.currency));
+    setMeta('description', m.title + ' — ' + m.brand + ' بسعر ' + Utils.formatPrice(m.price, m.currency));
     setMeta('og:title', m.title + ' | دراجتك عندنا');
-    setMeta('og:description', m.brand + ' ' + (m.model||'') + ' — ' + m.city);
+    setMeta('og:description', m.brand);
     setMeta('og:image', m.main_image || '/images/og-default.jpg');
     setMeta('og:url', location.href);
 
@@ -58,12 +58,9 @@
 
         <h1 class="detail-title">${m.title}</h1>
         <div class="detail-price">${Utils.formatPrice(m.price, m.currency)}</div>
-        <div class="detail-city"><i class="fas fa-location-dot" style="color:var(--primary)"></i> ${m.city}</div>
 
         <div class="detail-specs">
           ${m.brand ? '<div class="detail-spec"><div class="detail-spec-label">الشركة</div><div class="detail-spec-value">' + m.brand + '</div></div>' : ''}
-          ${m.model ? '<div class="detail-spec"><div class="detail-spec-label">الموديل</div><div class="detail-spec-value">' + m.model + '</div></div>' : ''}
-          ${m.color ? '<div class="detail-spec"><div class="detail-spec-label">اللون</div><div class="detail-spec-value">' + m.color + '</div></div>' : ''}
         </div>
 
         ${m.description ? '<div class="detail-desc">' + m.description + '</div>' : ''}
