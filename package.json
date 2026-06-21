@@ -1,0 +1,45 @@
+{
+  "name": "daragatuk-alayna",
+  "version": "1.0.0",
+  "description": "دراجتك علينا - منصة عرض وبيع الدراجات النارية في السعودية (Node.js + Express + SQLite)",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node src/database/seed.js",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop daragatuk-alayna",
+    "pm2:logs": "pm2 logs daragatuk-alayna"
+  },
+  "keywords": [
+    "motorcycles",
+    "marketplace",
+    "saudi-arabia",
+    "express",
+    "sqlite"
+  ],
+  "author": "دراجتك علينا",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.22.0",
+    "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

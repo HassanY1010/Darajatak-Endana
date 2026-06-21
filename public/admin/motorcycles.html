@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>إدارة الدراجات | لوحة التحكم</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-page">
+  <div class="flex min-h-screen">
+    <aside id="sidebar-aside" class="fixed lg:sticky top-0 right-0 z-40 w-64 h-screen bg-[#141417] border-l border-white/10 p-4 flex flex-col transition-transform">
+      <div id="admin-sidebar" class="flex flex-col h-full"></div>
+    </aside>
+
+    <div class="flex-1 min-w-0">
+      <div id="admin-topbar" class="h-16 px-4 flex items-center justify-between border-b border-white/10 bg-[#0b0b0d]/80 backdrop-blur sticky top-0 z-30"></div>
+
+      <main class="p-4 md:p-8">
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h1 class="text-2xl font-black">إدارة <span class="gold-text-gradient">الدراجات</span></h1>
+          <a href="/admin/edit.html" class="gold-gradient font-extrabold px-5 py-2.5 rounded-xl hover:scale-105 transition">
+            <i class="fas fa-plus ml-1"></i> إضافة دراجة
+          </a>
+        </div>
+
+        <div class="flex gap-3 mb-4 flex-wrap">
+          <div class="relative flex-1 min-w-[200px]">
+            <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+            <input id="search" type="text" placeholder="بحث..."
+                   class="w-full bg-[#141417] border border-white/10 rounded-xl py-2.5 pr-10 pl-3 focus:border-gold outline-none">
+          </div>
+          <select id="status-filter" class="bg-[#141417] border border-white/10 rounded-xl py-2.5 px-3 focus:border-gold outline-none">
+            <option value="">كل الحالات</option>
+            <option value="available">متاحة</option>
+            <option value="reserved">محجوزة</option>
+            <option value="sold">تم البيع</option>
+          </select>
+          <select id="sort-filter" class="bg-[#141417] border border-white/10 rounded-xl py-2.5 px-3 focus:border-gold outline-none">
+            <option value="newest">الأحدث</option>
+            <option value="views_desc">الأكثر مشاهدة</option>
+            <option value="views_asc">الأقل مشاهدة</option>
+            <option value="price_asc">الأرخص</option>
+            <option value="price_desc">الأغلى</option>
+          </select>
+        </div>
+
+        <div class="bg-[#141417] border border-white/10 rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm resp-table">
+              <thead class="bg-white/5 text-gray-400">
+                <tr>
+                  <th class="text-right p-3">الصورة</th>
+                  <th class="text-right p-3">الاسم</th>
+                  <th class="text-right p-3">السعر</th>
+                  <th class="text-right p-3">المدينة</th>
+                  <th class="text-right p-3">الحالة</th>
+                  <th class="text-center p-3">المشاهدات</th>
+                  <th class="text-right p-3">التاريخ</th>
+                  <th class="text-center p-3">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="tbody">
+                <tr><td colspan="9" class="p-10 text-center"><div class="spinner mx-auto"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div id="pagination" class="flex justify-center gap-2 mt-6"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/admin/js/admin.js"></script>
+  <script src="/admin/js/list.js"></script>
+</body>
+</html>

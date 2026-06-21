@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>الرئيسية | لوحة التحكم</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-page overflow-x-hidden">
+  <div class="flex min-h-screen">
+    <aside id="sidebar-aside"
+           class="fixed lg:sticky top-0 right-0 z-40 w-64 h-screen bg-[#141417] border-l border-white/10 p-4 flex flex-col transition-transform">
+      <div id="admin-sidebar" class="flex flex-col h-full"></div>
+    </aside>
+
+    <div class="flex-1 min-w-0">
+      <div id="admin-topbar" class="h-16 px-4 flex items-center justify-between border-b border-white/10 bg-[#0b0b0d]/80 backdrop-blur sticky top-0 z-30"></div>
+
+      <main class="p-4 md:p-8">
+        <h1 class="text-2xl font-black mb-6">لوحة <span class="gold-text-gradient">المعلومات</span></h1>
+
+        <section id="stat-cards" class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8"></section>
+
+        <section class="grid lg:grid-cols-3 gap-6">
+          <div class="bg-[#141417] border border-white/10 rounded-2xl p-6">
+            <h2 class="font-bold mb-4 flex items-center gap-2"><i class="fas fa-chart-pie text-gold"></i> توزيع الحالات</h2>
+            <div style="height:260px;"><canvas id="status-chart"></canvas></div>
+          </div>
+          <div class="bg-[#141417] border border-white/10 rounded-2xl p-6">
+            <h2 class="font-bold mb-4 flex items-center gap-2"><i class="fas fa-fire text-gold"></i> الأكثر مشاهدة</h2>
+            <div id="top-views" class="space-y-2"><div class="spinner"></div></div>
+          </div>
+          <div class="bg-[#141417] border border-white/10 rounded-2xl p-6">
+            <h2 class="font-bold mb-4 flex items-center gap-2"><i class="fas fa-clock text-gold"></i> أحدث الدراجات</h2>
+            <div id="recent-list" class="space-y-3"><div class="spinner"></div></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/admin/js/admin.js"></script>
+  <script>
+    (async function () {
+      if (!await Admin.guard()) return;
+      await Admin.initLayout('dashboard');
+
+      // ترحيب باسم المدير
+      if (Admin.me && Admin.me.name) {
+        Utils.toast('مرحباً بك يا ' + Admin.me.name + ' 👋', 'info');
+      }
+
+      const { data: s } = await API.stats();
+      const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+      const cards = [
+        { label: 'إجمالي الدراجات', value: fmt(s.total), icon: 'fa-motorcycle', color: 'text-gold', sub: 'مجموع الكلي' },
+        { label: 'متاحة', value: fmt(s.available), icon: 'fa-circle-check', color: 'text-green-400', sub: 'جاهزة للبيع' },
+        { label: 'محجوزة', value: fmt(s.reserved), icon: 'fa-clock', color: 'text-yellow-400', sub: 'قيد الانتظار' },
+        { label: 'تم البيع', value: fmt(s.sold), icon: 'fa-handshake', color: 'text-red-400', sub: 'مباعة' },
+        { label: 'المشاهدات', value: fmt(s.totalViews), icon: 'fa-eye', color: 'text-blue-400', sub: 'إجمالي الزوار' }
+      ];
+      document.getElementById('stat-cards').innerHTML = cards.map(c => `
+        <div class="bg-[#141417] border border-white/10 rounded-2xl p-5 hover:border-gold/30 transition">
+          <div class="flex items-center justify-between mb-3">
+            <i class="fas ${c.icon} text-xl ${c.color}"></i>
+            <span class="text-xs text-gray-500">${c.sub}</span>
+          </div>
+          <div class="text-3xl font-black ${c.color} leading-tight">${c.value}</div>
+          <div class="text-gray-400 text-sm mt-1">${c.label}</div>
+        </div>`).join('');
+
+      // رسم بياني للحالات
+      var chartColors = adminChartColors();
+      var statusChart = new Chart(document.getElementById('status-chart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['متاحة', 'محجوزة', 'تم البيع'],
+          datasets: [{
+            data: [s.available, s.reserved, s.sold],
+            backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
+            borderColor: chartColors.border, borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: chartColors.legend, font: { family: 'Cairo' } } } }
+        }
+      });
+      window.addEventListener('admin-theme-change', function () {
+        var c = adminChartColors();
+        statusChart.data.datasets[0].borderColor = c.border;
+        statusChart.options.plugins.legend.labels.color = c.legend;
+        statusChart.update();
+      });
+
+      // أحدث الدراجات
+      const { data: recent } = await API.motorcycles('limit=5&sort=newest');
+      document.getElementById('recent-list').innerHTML = recent.length ? recent.map(m => `
+        <a href="/admin/edit.html?id=${m.id}" class="admin-nav-link flex items-center gap-3 p-2 rounded-xl">
+          <img src="${Utils.img(m.main_image)}" class="w-12 h-12 rounded-lg object-cover" alt="">
+          <div class="flex-1 min-w-0">
+            <div class="font-bold truncate">${m.title}</div>
+            <div class="text-xs text-gray-400">${m.city} • ${Utils.formatPrice(m.price, m.currency)}</div>
+          </div>
+          <span class="text-xs px-2 py-1 rounded-full ${Utils.statusBadgeClass(m.status)}">${Utils.statusLabel(m.status)}</span>
+        </a>`).join('') : '<p class="text-gray-500 text-sm">لا توجد دراجات بعد.</p>';
+
+      // الأكثر مشاهدة
+      const { data: topViewed } = await API.motorcycles('limit=5&sort=views_desc');
+      const maxViews = Math.max(...topViewed.map(m => m.views || 0), 1);
+      document.getElementById('top-views').innerHTML = topViewed.length ? topViewed.map((m, i) => `
+        <a href="/admin/edit.html?id=${m.id}" class="admin-nav-link flex items-center gap-3 p-2 rounded-xl">
+          <div class="w-6 text-center font-black text-sm ${i === 0 ? 'text-gold' : 'text-gray-500'}">${i + 1}</div>
+          <img src="${Utils.img(m.main_image)}" class="w-10 h-10 rounded-lg object-cover" alt="">
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-bold truncate">${m.title}</div>
+            <div class="flex items-center gap-2 mt-1">
+              <div class="flex-1 h-1.5 admin-progress-track rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-l from-gold to-yellow-300 rounded-full" style="width:${((m.views||0)/maxViews*100).toFixed(1)}%"></div>
+              </div>
+              <span class="text-xs text-gray-400 whitespace-nowrap">${(m.views||0).toLocaleString('ar-SA')}</span>
+            </div>
+          </div>
+        </a>`).join('') : '<p class="text-gray-500 text-sm">لا توجد مشاهدات بعد.</p>';
+    })();
+  </script>
+</body>
+</html>

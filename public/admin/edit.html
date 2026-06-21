@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>إضافة/تعديل دراجة | لوحة التحكم</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>body { font-family: 'Cairo', sans-serif; }</style>
+</head>
+<body class="admin-page">
+  <div class="flex min-h-screen">
+    <aside id="sidebar-aside" class="fixed lg:sticky top-0 right-0 z-40 w-64 h-screen bg-[#141417] border-l border-white/10 p-4 flex flex-col transition-transform">
+      <div id="admin-sidebar" class="flex flex-col h-full"></div>
+    </aside>
+    <div class="flex-1 min-w-0">
+      <div id="admin-topbar" class="h-16 px-4 flex items-center justify-between border-b border-white/10 bg-[#0b0b0d]/80 backdrop-blur sticky top-0 z-30"></div>
+      <main class="p-4 md:p-8 max-w-4xl" style="margin:0 auto;">
+        <div class="flex items-center gap-3 mb-8">
+          <div class="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center text-black text-lg"><i class="fas fa-motorcycle"></i></div>
+          <h1 id="page-title" class="text-2xl font-black m-0">إضافة <span class="gold-text-gradient">دراجة</span></h1>
+        </div>
+
+        <form id="moto-form" enctype="multipart/form-data" class="space-y-6">
+
+          <!-- === معلومات أساسية === -->
+          <div class="section-card">
+            <div class="admin-section-head">
+              <i class="fas fa-info-circle"></i>
+              <span>معلومات أساسية</span>
+            </div>
+            <div class="grid md:grid-cols-2 gap-5">
+              <div>
+                <label class="inp-label"><i class="fas fa-tag ml-1"></i> العنوان *</label>
+                <input id="f-title" required class="inp" placeholder="مثلاً: دراجة نارية ياماها">
+              </div>
+              <div>
+                <label class="inp-label"><i class="fas fa-industry ml-1"></i> الشركة *</label>
+                <select id="f-brand" required class="inp">
+                  <option value="">اختر الشركة</option>
+                  <option value="بوتيان (Baotian)">بوتيان (Baotian)</option>
+                  <option value="التمساح">التمساح</option>
+                  <option value="الزلزال (Zelzal)">الزلزال (Zelzal)</option>
+                  <option value="سانيا (Sanya)">سانيا (Sanya)</option>
+                  <option value="هاوجين (Haojin)">هاوجين (Haojin)</option>
+                  <option value="هاوجو / هوجو (Haojue)">هاوجو / هوجو (Haojue)</option>
+                  <option value="سوزوكي (Suzuki)">سوزوكي (Suzuki)</option>
+                  <option value="ياماها (Yamaha)">ياماها (Yamaha)</option>
+                  <option value="هوندا (Honda)">هوندا (Honda)</option>
+                  <option value="ليفان (Lifan)">ليفان (Lifan)</option>
+                  <option value="لونسين (Loncin)">لونسين (Loncin)</option>
+                  <option value="زونغشين (Zongshen)">زونغشين (Zongshen)</option>
+                  <option value="بينيلي (Benelli)">بينيلي (Benelli)</option>
+                  <option value="كيوي (Keeway)">كيوي (Keeway)</option>
+                  <option value="مارشال">مارشال</option>
+                  <option value="كوفكس">كوفكس</option>
+                  <option value="مازوتي">مازوتي</option>
+                  <option value="كاماكس (Kamax)">كاماكس (Kamax)</option>
+                  <option value="ينهي / يينهي (Yinhe)">ينهي / يينهي (Yinhe)</option>
+                  <option value="FYM">FYM</option>
+                  <option value="فرخ سانيا">فرخ سانيا</option>
+                </select>
+              </div>
+              <div>
+                <label class="inp-label"><i class="fas fa-calendar ml-1"></i> الموديل</label>
+                <input id="f-model" class="inp" placeholder="مثلاً: 2024">
+              </div>
+              <div>
+                <label class="inp-label"><i class="fas fa-palette ml-1"></i> اللون</label>
+                <input id="f-color" class="inp" placeholder="مثلاً: أحمر">
+              </div>
+              <div>
+                <label class="inp-label"><i class="fas fa-location-dot ml-1"></i> المدينة *</label>
+                <select id="f-city" required class="inp">
+                  <option value="">اختر المدينة</option>
+                  <option value="المكلا">المكلا</option>
+                  <option value="الشحر">الشحر</option>
+                  <option value="غيل باوزير">غيل باوزير</option>
+                  <option value="الديس الشرقية">الديس الشرقية</option>
+                  <option value="الريدة وقصيعر">الريدة وقصيعر</option>
+                  <option value="بروم ميفع">بروم ميفع</option>
+                  <option value="حجر">حجر</option>
+                  <option value="غيل بن يمين">غيل بن يمين</option>
+                  <option value="الضليعة">الضليعة</option>
+                  <option value="دوعن">دوعن</option>
+                  <option value="يبعث">يبعث</option>
+                  <option value="عمد">عمد</option>
+                  <option value="رخية">رخية</option>
+                  <option value="حورة ووادي العين">حورة ووادي العين</option>
+                  <option value="القطن">القطن</option>
+                  <option value="شبام">شبام</option>
+                  <option value="ساه">ساه</option>
+                  <option value="سيئون">سيئون</option>
+                  <option value="تريم">تريم</option>
+                  <option value="السوم">السوم</option>
+                  <option value="العبر">العبر</option>
+                  <option value="رماه">رماه</option>
+                  <option value="ثمود">ثمود</option>
+                  <option value="القف">القف</option>
+                  <option value="زمخ ومنوخ">زمخ ومنوخ</option>
+                  <option value="وادي عمد">وادي عمد</option>
+                  <option value="شحير">شحير</option>
+                </select>
+              </div>
+              <div>
+                <label class="inp-label"><i class="fas fa-money-bill ml-1" style="color:#d4af37;font-size:.7rem;"></i> السعر *</label>
+                <div class="flex gap-2">
+                  <input id="f-price" type="number" required class="inp flex-1" min="0" placeholder="مثلاً: 1500000">
+                  <select id="f-currency" class="inp" style="width:140px;flex-shrink:0;">
+                    <option value="SAR">🇸🇦 ريال سعودي</option>
+                    <option value="YER">🇾🇪 ريال يمني</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- === وصف === -->
+          <div class="section-card">
+            <div class="admin-section-head">
+              <i class="fas fa-file-lines"></i>
+              <span>الوصف</span>
+            </div>
+            <textarea id="f-description" rows="4" class="inp" placeholder="اكتب وصفاً مفصلاً للدراجة..."></textarea>
+          </div>
+
+          <!-- === الحالة والخيارات === -->
+          <div class="section-card">
+            <div class="admin-section-head">
+              <i class="fas fa-sliders"></i>
+              <span>الحالة والخيارات</span>
+            </div>
+            <div class="flex items-center gap-6 flex-wrap">
+              <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                <input id="f-negotiable" type="checkbox" class="w-4 h-4 rounded">
+                <span class="admin-checkbox-label">قابل للتفاوض</span>
+              </label>
+              <div class="flex items-center gap-3">
+                <span class="text-sm admin-muted-inline">الحالة:</span>
+                <select id="f-status" class="inp !w-auto !min-w-[130px] !py-2">
+                  <option value="available">🟢 متاحة</option>
+                  <option value="reserved">🟡 محجوزة</option>
+                  <option value="sold">🔴 تم البيع</option>
+                </select>
+              </div>
+              <span id="views-badge" class="admin-views-badge hidden text-sm flex items-center gap-1.5 px-3 py-1.5 rounded-lg">
+                <i class="fas fa-eye"></i> <span id="views-count">0</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- === الصور === -->
+          <div class="section-card">
+            <div class="admin-section-head">
+              <i class="fas fa-images"></i>
+              <span>الصور</span>
+            </div>
+            <div class="upload-area">
+              <i class="fas fa-cloud-upload-alt admin-upload-icon"></i>
+              <div class="admin-upload-title">اضغط أو اسحب الصور هنا</div>
+              <div class="admin-upload-hint" style="margin-top:4px;">JPG, PNG, WebP — حد أقصى 10 صور</div>
+              <input id="f-files" type="file" accept="image/*" multiple>
+            </div>
+            <div id="images-grid" class="grid grid-cols-3 md:grid-cols-5 gap-3 mt-4"></div>
+            <p id="images-hint" class="admin-field-hint text-xs mt-3">💡 احفظ الدراجة أولاً لتتمكن من إضافة الصور.</p>
+            <div class="flex gap-2 mt-4 flex-col sm:flex-row">
+              <input id="f-url" type="text" class="inp flex-1" placeholder="أو أضف رابط صورة خارجية...">
+              <button type="button" id="add-url-btn" class="admin-link-btn px-5 py-2.5 rounded-xl font-bold text-sm transition border-none cursor-pointer">
+                <i class="fas fa-link ml-1"></i> إضافة
+              </button>
+            </div>
+          </div>
+
+          <!-- === أزرار === -->
+          <div class="flex gap-3 flex-col sm:flex-row">
+            <button type="submit" id="save-btn" class="flex-1 gold-gradient font-extrabold py-3.5 rounded-xl transition font-bold text-sm border-none cursor-pointer">
+              <i class="fas fa-floppy-disk ml-1.5"></i> حفظ
+            </button>
+            <button type="button" id="cancel-btn" class="admin-cancel-btn flex-1 py-3.5 rounded-xl font-bold text-sm transition cursor-pointer">
+              <i class="fas fa-xmark ml-1.5"></i> إلغاء
+            </button>
+          </div>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/admin/js/admin.js"></script>
+  <script src="/admin/js/edit.js"></script>
+</body>
+</html>

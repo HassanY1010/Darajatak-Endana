@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>المفضّلة | دراجتك عندنا</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="favorites">
+  <div id="site-header"></div>
+
+  <main class="container-wide page-section page-section--tall">
+    <h1 class="fav-page-title">
+      <i class="fas fa-heart" style="color:#EF4444"></i> المفضّلة
+    </h1>
+    <div id="fav-list" class="card-grid card-grid--in-container"></div>
+    <div id="fav-empty" class="empty-state hidden">
+      <i class="fas fa-heart" style="opacity:.2"></i>
+      <h3>لا توجد دراجات في المفضّلة</h3>
+      <p>اضغط على أيقونة القلب في أي دراجة لإضافتها هنا.</p>
+      <a href="/" class="btn-primary" style="display:inline-flex;margin-top:16px;">تصفّح الدراجات</a>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/card.js"></script>
+  <script>
+  (async function() {
+    await loadSite();
+    const favs = Utils.getFavorites();
+    if (!favs.length) {
+      document.getElementById('fav-list').innerHTML = '';
+      document.getElementById('fav-empty').classList.remove('hidden');
+      return;
+    }
+    // Fetch all fav'd motorcycles one by one
+    const results = [];
+    for (const id of favs) {
+      try {
+        const { data } = await API.motorcycle(id);
+        if (data) results.push(data);
+      } catch(e) {}
+    }
+    if (!results.length) {
+      document.getElementById('fav-list').innerHTML = '';
+      document.getElementById('fav-empty').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('fav-list').innerHTML = results.map(renderCard).join('');
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,440 @@
+/* ===== لوحة التحكم — ثيم داكن / فاتح ===== */
+
+html.dark body.admin-page {
+  --adm-bg: #0b0b0d;
+  --adm-bg-soft: rgba(11, 11, 13, 0.88);
+  --adm-surface: #141417;
+  --adm-surface-hover: rgba(255, 255, 255, 0.05);
+  --adm-border: rgba(255, 255, 255, 0.1);
+  --adm-border-soft: rgba(255, 255, 255, 0.05);
+  --adm-text: #ffffff;
+  --adm-text-muted: #9ca3af;
+  --adm-text-soft: #6b7280;
+  --adm-input-bg: #0b0b0d;
+  --adm-input-border: rgba(255, 255, 255, 0.1);
+  --adm-input-text: #ffffff;
+  --adm-input-placeholder: rgba(255, 255, 255, 0.25);
+  --adm-label: rgba(255, 255, 255, 0.55);
+  --adm-nav: #d1d5db;
+  --adm-nav-hover-bg: rgba(255, 255, 255, 0.05);
+  --adm-table-head: rgba(255, 255, 255, 0.05);
+  --adm-table-row-hover: rgba(106, 61, 90, 0.12);
+  --adm-progress-track: #0b0b0d;
+  --adm-chart-border: #141417;
+  --adm-chart-legend: #e5e5e5;
+  --adm-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  --adm-upload-border: rgba(255, 255, 255, 0.1);
+  --adm-upload-hover: rgba(106, 61, 90, 0.08);
+  --adm-section-title: rgba(255, 255, 255, 0.7);
+  --adm-muted-inline: rgba(255, 255, 255, 0.5);
+  --adm-cancel-bg: rgba(255, 255, 255, 0.06);
+  --adm-cancel-border: rgba(255, 255, 255, 0.06);
+  --adm-cancel-text: rgba(255, 255, 255, 0.55);
+  --adm-link-btn-bg: rgba(255, 255, 255, 0.08);
+  --adm-link-btn-text: rgba(255, 255, 255, 0.7);
+}
+
+html:not(.dark) body.admin-page {
+  --adm-bg: #f0f1f4;
+  --adm-bg-soft: rgba(255, 255, 255, 0.92);
+  --adm-surface: #ffffff;
+  --adm-surface-hover: rgba(106, 61, 90, 0.06);
+  --adm-border: rgba(0, 0, 0, 0.08);
+  --adm-border-soft: rgba(0, 0, 0, 0.05);
+  --adm-text: #111111;
+  --adm-text-muted: #5f6368;
+  --adm-text-soft: #80868b;
+  --adm-input-bg: #f8f9fa;
+  --adm-input-border: rgba(0, 0, 0, 0.12);
+  --adm-input-text: #111111;
+  --adm-input-placeholder: rgba(0, 0, 0, 0.35);
+  --adm-label: #5f6368;
+  --adm-nav: #3c4043;
+  --adm-nav-hover-bg: rgba(106, 61, 90, 0.06);
+  --adm-table-head: rgba(0, 0, 0, 0.04);
+  --adm-table-row-hover: rgba(106, 61, 90, 0.05);
+  --adm-progress-track: #e8eaed;
+  --adm-chart-border: #ffffff;
+  --adm-chart-legend: #3c4043;
+  --adm-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --adm-upload-border: rgba(0, 0, 0, 0.12);
+  --adm-upload-hover: rgba(106, 61, 90, 0.04);
+  --adm-section-title: #3c4043;
+  --adm-muted-inline: #5f6368;
+  --adm-cancel-bg: #f1f3f4;
+  --adm-cancel-border: rgba(0, 0, 0, 0.08);
+  --adm-cancel-text: #5f6368;
+  --adm-link-btn-bg: #f1f3f4;
+  --adm-link-btn-text: #3c4043;
+}
+
+body.admin-page {
+  background: var(--adm-bg) !important;
+  color: var(--adm-text) !important;
+  --text-primary: var(--adm-text);
+  --text-secondary: var(--adm-text-muted);
+}
+
+/* —— الهيكل —— */
+body.admin-page #sidebar-aside {
+  background: var(--adm-surface) !important;
+  border-color: var(--adm-border) !important;
+  box-shadow: var(--adm-shadow);
+}
+
+body.admin-page #admin-topbar {
+  background: var(--adm-bg-soft) !important;
+  border-color: var(--adm-border) !important;
+}
+
+/* —— Tailwind overrides —— */
+body.admin-page .bg-\[\#0b0b0d\] { background-color: var(--adm-bg) !important; }
+body.admin-page .bg-\[\#141417\] { background-color: var(--adm-surface) !important; }
+body.admin-page .bg-\[\#0b0b0d\]\/80,
+body.admin-page .bg-\[\#0b0b0d\]\/90 { background: var(--adm-bg-soft) !important; }
+
+body.admin-page .text-white { color: var(--adm-text) !important; }
+body.admin-page .text-gray-300 { color: var(--adm-nav) !important; }
+body.admin-page .text-gray-400 { color: var(--adm-text-muted) !important; }
+body.admin-page .text-gray-500 { color: var(--adm-text-soft) !important; }
+
+body.admin-page .border-white\/10 { border-color: var(--adm-border) !important; }
+body.admin-page .border-white\/5 { border-color: var(--adm-border-soft) !important; }
+
+body.admin-page .hover\:bg-white\/5:hover,
+body.admin-page a.hover\:bg-white\/5:hover { background: var(--adm-nav-hover-bg) !important; }
+
+body.admin-page .bg-white\/5,
+body.admin-page thead.bg-white\/5 { background: var(--adm-table-head) !important; }
+
+body.admin-page .bg-white\/10 { background: var(--adm-link-btn-bg) !important; }
+
+body.admin-page .hover\:bg-white\/10:hover { background: var(--adm-nav-hover-bg) !important; }
+
+body.admin-page .admin-card,
+body.admin-page .bg-\[\#141417\].rounded-2xl,
+body.admin-page .bg-\[\#141417\].border {
+  box-shadow: var(--adm-shadow);
+}
+
+html:not(.dark) body.admin-page .gold-gradient {
+  color: #fff !important;
+}
+
+/* —— الشريط الجانبي —— */
+body.admin-page .admin-nav-link {
+  color: var(--adm-nav);
+  transition: background .2s, color .2s;
+}
+body.admin-page .admin-nav-link:hover {
+  background: var(--adm-nav-hover-bg);
+  color: var(--adm-text);
+}
+
+body.admin-page .admin-menu-btn {
+  color: var(--primary);
+}
+
+/* —— النماذج —— */
+body.admin-page .section-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border-soft);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--adm-shadow);
+}
+
+body.admin-page .inp,
+body.admin-page input.inp,
+body.admin-page select.inp,
+body.admin-page textarea.inp {
+  width: 100%;
+  background: var(--adm-input-bg);
+  border: 1px solid var(--adm-input-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  outline: none;
+  color: var(--adm-input-text);
+  font-size: .92rem;
+  transition: border-color .25s, box-shadow .25s;
+}
+
+body.admin-page .inp:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+body.admin-page .inp::placeholder {
+  color: var(--adm-input-placeholder);
+}
+
+body.admin-page .inp option {
+  background: var(--adm-surface);
+  color: var(--adm-input-text);
+}
+
+body.admin-page .inp-label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--adm-label);
+  margin-bottom: 6px;
+}
+
+body.admin-page .inp-label i {
+  color: var(--primary);
+  font-size: .7rem;
+}
+
+body.admin-page .admin-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--adm-border-soft);
+}
+
+body.admin-page .admin-section-head i {
+  color: var(--primary);
+}
+
+body.admin-page .admin-section-head span {
+  font-weight: 700;
+  font-size: .875rem;
+  color: var(--adm-section-title);
+}
+
+body.admin-page .admin-upload-icon {
+  font-size: 2rem;
+  color: var(--primary);
+  opacity: .6;
+  margin-bottom: 8px;
+  display: block;
+}
+
+body.admin-page .upload-area {
+  position: relative;
+  border: 2px dashed var(--adm-upload-border);
+  border-radius: 14px;
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .3s, background .3s;
+}
+
+body.admin-page .upload-area:hover {
+  border-color: var(--primary);
+  background: var(--adm-upload-hover);
+}
+
+body.admin-page .upload-area input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+body.admin-page .admin-field-hint {
+  color: var(--adm-text-soft);
+}
+
+body.admin-page .admin-section-title {
+  color: var(--adm-section-title);
+}
+
+body.admin-page .admin-muted-inline {
+  color: var(--adm-muted-inline);
+}
+
+body.admin-page .admin-cancel-btn {
+  background: var(--adm-cancel-bg);
+  color: var(--adm-cancel-text);
+  border: 1px solid var(--adm-cancel-border);
+}
+
+body.admin-page .admin-link-btn {
+  background: var(--adm-link-btn-bg);
+  color: var(--adm-link-btn-text);
+}
+
+/* —— حقول البحث والفلترة —— */
+body.admin-page #search,
+body.admin-page #status-filter,
+body.admin-page #sort-filter,
+body.admin-page .admin-search-input {
+  background: var(--adm-input-bg) !important;
+  border-color: var(--adm-input-border) !important;
+  color: var(--adm-input-text) !important;
+}
+
+body.admin-page #search::placeholder {
+  color: var(--adm-input-placeholder);
+}
+
+body.admin-page #search:focus,
+body.admin-page #status-filter:focus,
+body.admin-page #sort-filter:focus {
+  border-color: var(--primary) !important;
+}
+
+/* —— الجداول —— */
+body.admin-page .admin-table-row {
+  border-color: var(--adm-border-soft) !important;
+  transition: background .2s;
+}
+
+body.admin-page .admin-table-row:hover {
+  background: var(--adm-table-row-hover) !important;
+}
+
+body.admin-page .status-select {
+  background: var(--adm-input-bg) !important;
+  border: 1.5px solid var(--adm-input-border) !important;
+  color: var(--adm-input-text) !important;
+}
+
+body.admin-page .admin-progress-track {
+  background: var(--adm-progress-track) !important;
+}
+
+body.admin-page .admin-action-btn {
+  transition: transform .15s, opacity .15s;
+}
+
+body.admin-page .admin-action-btn--edit {
+  background: var(--primary-soft) !important;
+  color: var(--primary) !important;
+}
+
+body.admin-page .admin-action-btn--view {
+  background: rgba(106, 61, 90, 0.08) !important;
+  color: var(--adm-text-muted) !important;
+}
+
+/* —— صفحة الدخول —— */
+body.admin-page.admin-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+body.admin-page .admin-login-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  box-shadow: var(--adm-shadow);
+}
+
+body.admin-page .admin-login-input {
+  width: 100%;
+  background: var(--adm-input-bg);
+  border: 1px solid var(--adm-input-border);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--adm-input-text);
+  outline: none;
+}
+
+body.admin-page .admin-login-input:focus {
+  border-color: var(--primary);
+}
+
+body.admin-page .admin-theme-fab {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: var(--adm-shadow);
+  transition: color .2s, border-color .2s;
+}
+
+body.admin-page .admin-theme-fab:hover {
+  color: var(--primary);
+  border-color: var(--primary-border);
+}
+
+/* —— ترقيم الصفحات —— */
+body.admin-page .admin-pag-btn {
+  border-color: var(--adm-border) !important;
+  color: var(--adm-nav) !important;
+  background: var(--adm-surface) !important;
+}
+
+body.admin-page .admin-pag-btn:hover:not(:disabled) {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+/* —— صور —— */
+body.admin-page .img-card { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 1; border: 2px solid transparent; transition: border-color .3s; }
+body.admin-page .img-card.main { border-color: var(--primary); }
+body.admin-page .img-card img { width: 100%; height: 100%; object-fit: cover; }
+body.admin-page .img-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.65); display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0; transition: opacity .25s; }
+body.admin-page .img-card:hover .img-overlay { opacity: 1; }
+body.admin-page .img-overlay button { width: 34px; height: 34px; border-radius: 10px; border: none; cursor: pointer; font-size: .85rem; display: grid; place-items: center; transition: transform .2s; }
+body.admin-page .img-overlay button:hover { transform: scale(1.1); }
+body.admin-page .img-badge { position: absolute; top: 6px; right: 6px; background: var(--primary); color: #fff; font-size: .65rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; }
+
+body.admin-page .admin-icon-gold { color: var(--primary); }
+
+body.admin-page .admin-upload-title {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--adm-section-title);
+}
+
+body.admin-page .admin-upload-hint,
+body.admin-page .admin-field-hint {
+  font-size: .75rem;
+  color: var(--adm-text-soft);
+}
+
+body.admin-page .admin-checkbox-label {
+  color: var(--adm-section-title);
+  font-size: .875rem;
+}
+
+body.admin-page input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 18px;
+  height: 18px;
+}
+
+body.admin-page .admin-views-badge {
+  background: var(--adm-table-head);
+  color: var(--adm-text-soft);
+}
+
+body.admin-page .admin-link-btn:hover {
+  opacity: .85;
+}
+
+body.admin-page .admin-cancel-btn:hover {
+  background: var(--adm-nav-hover-bg);
+}
+
+body.admin-page .admin-img-border {
+  border-color: var(--adm-border) !important;
+}
+
+body.admin-page .admin-img-main-badge {
+  background: var(--primary);
+  color: #fff;
+}
+
+@media (max-width: 767px) {
+  body.admin-page .section-card { padding: 16px; }
+}

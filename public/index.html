@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>دراجتك عندنا | منصة الدراجات النارية في حضرموت</title>
+  <meta name="description" content="أسرع منصة لبيع وشراء الدراجات النارية في حضرموت. ابحث، شاهد السعر، وتواصل مع البائع مباشرة عبر واتساب.">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="دراجتك عندنا | منصة الدراجات النارية في حضرموت">
+  <meta property="og:description" content="أسرع منصة لبيع وشراء الدراجات النارية في حضرموت.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://daragatuk.sa/">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="home">
+  <div id="site-header"></div>
+
+  <!-- Hero: ترحيب -->
+  <section class="hero-compact hero-home">
+    <h1>
+      دراجتك <span style="color:var(--primary)">عندنا</span> 🏍️
+    </h1>
+    <p>
+      أول منصة متخصصة في عرض وبيع الدراجات النارية في <strong>حضرموت</strong>.
+      ابحث عن دراجتك المثالية، شاهد السعر والمكان، وتواصل مع البائع مباشرة عبر واتساب.
+    </p>
+    <div class="hero-home-actions">
+      <a href="#listings" style="background:var(--primary);color:#fff;">
+        <i class="fas fa-search ml-1"></i> تصفح الدراجات
+      </a>
+    </div>
+  </section>
+
+  <!-- Stats pills row -->
+  <div id="stats-bar" class="container-wide" style="padding:12px 16px 0;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"></div>
+
+  <!-- Filters -->
+  <div id="filter-area">
+    <div class="filter-bar">
+      <button class="filter-toggle" id="filter-toggle-btn"><i class="fas fa-sliders-h"></i> فلترة</button>
+      <div class="filter-desktop" id="filter-desktop">
+        <select id="f-city" class="f-select">
+          <option value="">كل المدن</option>
+          <option value="المكلا">المكلا</option>
+          <option value="الشحر">الشحر</option>
+          <option value="غيل باوزير">غيل باوزير</option>
+          <option value="الديس الشرقية">الديس الشرقية</option>
+          <option value="الريدة وقصيعر">الريدة وقصيعر</option>
+          <option value="بروم ميفع">بروم ميفع</option>
+          <option value="حجر">حجر</option>
+          <option value="غيل بن يمين">غيل بن يمين</option>
+          <option value="الضليعة">الضليعة</option>
+          <option value="دوعن">دوعن</option>
+          <option value="يبعث">يبعث</option>
+          <option value="عمد">عمد</option>
+          <option value="رخية">رخية</option>
+          <option value="حورة ووادي العين">حورة ووادي العين</option>
+          <option value="القطن">القطن</option>
+          <option value="شبام">شبام</option>
+          <option value="ساه">ساه</option>
+          <option value="سيئون">سيئون</option>
+          <option value="تريم">تريم</option>
+          <option value="السوم">السوم</option>
+          <option value="العبر">العبر</option>
+          <option value="رماه">رماه</option>
+          <option value="ثمود">ثمود</option>
+          <option value="القف">القف</option>
+          <option value="زمخ ومنوخ">زمخ ومنوخ</option>
+          <option value="وادي عمد">وادي عمد</option>
+          <option value="شحير">شحير</option>
+        </select>
+        <select id="f-brand" class="f-select">
+          <option value="">كل الماركات</option>
+          <option value="بوتيان (Baotian)">بوتيان (Baotian)</option>
+          <option value="التمساح">التمساح</option>
+          <option value="الزلزال (Zelzal)">الزلزال (Zelzal)</option>
+          <option value="سانيا (Sanya)">سانيا (Sanya)</option>
+          <option value="هاوجين (Haojin)">هاوجين (Haojin)</option>
+          <option value="هاوجو / هوجو (Haojue)">هاوجو / هوجو (Haojue)</option>
+          <option value="سوزوكي (Suzuki)">سوزوكي (Suzuki)</option>
+          <option value="ياماها (Yamaha)">ياماها (Yamaha)</option>
+          <option value="هوندا (Honda)">هوندا (Honda)</option>
+          <option value="ليفان (Lifan)">ليفان (Lifan)</option>
+          <option value="لونسين (Loncin)">لونسين (Loncin)</option>
+          <option value="زونغشين (Zongshen)">زونغشين (Zongshen)</option>
+          <option value="بينيلي (Benelli)">بينيلي (Benelli)</option>
+          <option value="كيوي (Keeway)">كيوي (Keeway)</option>
+          <option value="مارشال">مارشال</option>
+          <option value="كوفكس">كوفكس</option>
+          <option value="مازوتي">مازوتي</option>
+          <option value="كاماكس (Kamax)">كاماكس (Kamax)</option>
+          <option value="ينهي / يينهي (Yinhe)">ينهي / يينهي (Yinhe)</option>
+          <option value="FYM">FYM</option>
+          <option value="فرخ سانيا">فرخ سانيا</option>
+        </select>
+        <select id="f-status" class="f-select">
+          <option value="">الكل</option>
+          <option value="available">متاح</option>
+          <option value="sold">تم البيع</option>
+        </select>
+        <input id="f-min-price" type="number" class="f-price" placeholder="من" min="0">
+        <input id="f-max-price" type="number" class="f-price" placeholder="إلى" min="0">
+        <button class="btn-primary" style="height:42px;padding:0 18px;font-size:.85rem;border-radius:10px;" id="filter-go-btn"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+    <div id="active-chips" class="container-wide hidden" style="padding:0 16px 8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- Listings+sort bar -->
+  <div class="container-wide listings-toolbar">
+    <span id="result-count" class="text-muted" style="font-size:.85rem;"></span>
+    <select id="sort-select" class="f-select" style="min-width:auto;width:auto;flex:none;">
+      <option value="newest">الأحدث</option>
+      <option value="price_asc">السعر: الأقل أولاً</option>
+      <option value="price_desc">السعر: الأعلى أولاً</option>
+      <option value="views_desc">الأكثر مشاهدة</option>
+    </select>
+  </div>
+
+  <div id="listings" class="card-grid"></div>
+  <div id="pagination"></div>
+
+  <!-- Features -->
+  <section class="features-section">
+    <div class="features-grid">
+      <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:16px;padding:20px;text-align:center;">
+        <div style="font-size:2rem;color:var(--primary);margin-bottom:8px;">🔍</div>
+        <h3 style="margin:0 0 6px;font-size:1rem;color:var(--text-primary);">بحث سهل وسريع</h3>
+        <p style="margin:0;font-size:.82rem;color:var(--text-secondary);line-height:1.6;">
+          فلترة بالمدينة، الماركة، السعر، والحالة — عشان تلاقي دراجتك في ثواني.
+        </p>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:16px;padding:20px;text-align:center;">
+        <div style="font-size:2rem;color:var(--primary);margin-bottom:8px;">💬</div>
+        <h3 style="margin:0 0 6px;font-size:1rem;color:var(--text-primary);">تواصل مباشر مع البائع</h3>
+        <p style="margin:0;font-size:.82rem;color:var(--text-secondary);line-height:1.6;">
+          كل إعلان فيه زر واتساب — اضغط وتواصل مع البائع المسؤول عن الإعلان مباشرة.
+        </p>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:16px;padding:20px;text-align:center;">
+        <div style="font-size:2rem;color:var(--primary);margin-bottom:8px;">📍</div>
+        <h3 style="margin:0 0 6px;font-size:1rem;color:var(--text-primary);">تركيز على حضرموت</h3>
+        <p style="margin:0;font-size:.82rem;color:var(--text-secondary);line-height:1.6;">
+          المنصة مخصصة لسوق حضرموت — المكلا، سيئون، تريم، الشحر، وكل المدن والمناطق.
+        </p>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:16px;padding:20px;text-align:center;">
+        <div style="font-size:2rem;color:var(--primary);margin-bottom:8px;">🆓</div>
+        <h3 style="margin:0 0 6px;font-size:1rem;color:var(--text-primary);">نشر إعلان مجاني</h3>
+        <p style="margin:0;font-size:.82rem;color:var(--text-secondary);line-height:1.6;">
+          تقدر تنشر دراجتك للبيع مجاناً — وتظهر لكل الزوار في حضرموت واليمن.
+        </p>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Coming soon: سيارات -->
+  <section class="coming-soon-section">
+    <div class="coming-soon-card">
+      <div style="position:absolute;top:-30px;left:-30px;font-size:6rem;opacity:.08;">🚗</div>
+      <div style="position:absolute;bottom:-20px;right:-20px;font-size:5rem;opacity:.08;">🏎️</div>
+      <span style="display:inline-block;background:rgba(255,255,255,.2);backdrop-filter:blur(4px);color:#fff;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;margin-bottom:8px;">قريباً</span>
+      <h2>🚗 قسم السيارات</h2>
+      <p style="margin:0;font-size:.9rem;color:rgba(255,255,255,.85);">قريباً — منصة دراجتك عندنا راح تشمل أيضاً <strong>عرض وبيع السيارات</strong> في حضرموت واليمن. ترقبوا التحديث!</p>
+    </div>
+  </section>
+
+  <div id="site-footer"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/card.js"></script>
+  <script src="/js/motorcycles.js"></script>
+</body>
+</html>

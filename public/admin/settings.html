@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>الإعدادات | لوحة التحكم</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="admin-page overflow-x-hidden">
+  <div class="flex min-h-screen">
+    <aside id="sidebar-aside" class="fixed lg:sticky top-0 right-0 z-40 w-64 h-screen bg-[#141417] border-l border-white/10 p-4 flex flex-col transition-transform">
+      <div id="admin-sidebar" class="flex flex-col h-full"></div>
+    </aside>
+
+    <div class="flex-1 min-w-0">
+      <div id="admin-topbar" class="h-16 px-4 flex items-center justify-between border-b border-white/10 bg-[#0b0b0d]/80 backdrop-blur sticky top-0 z-30"></div>
+
+      <main class="p-4 md:p-8 max-w-3xl">
+        <h1 class="text-2xl font-black mb-6">إعدادات <span class="gold-text-gradient">الموقع</span></h1>
+
+        <form id="settings-form" class="bg-[#141417] border border-white/10 rounded-2xl p-6 space-y-4 mb-8">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">اسم الموقع</label>
+            <input id="s-name" class="inp" placeholder="دراجتك علينا">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">وصف الموقع</label>
+            <textarea id="s-desc" rows="3" class="inp"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">رقم واتساب <span class="text-gray-500">(مرتبط بحسابك — لا يمكن تعديله)</span></label>
+            <input id="s-wa" class="inp" readonly style="opacity:.6;cursor:not-allowed;" placeholder="966500000000">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">البريد الإلكتروني <span class="text-gray-500">(مرتبط بحسابك — لا يمكن تعديله)</span></label>
+            <input id="s-email" type="email" class="inp" readonly style="opacity:.6;cursor:not-allowed;" placeholder="admin@example.com">
+          </div>
+          <button type="submit" id="save-settings" class="gold-gradient text-black font-extrabold px-8 py-3 rounded-xl hover:scale-[1.02] transition">
+            <i class="fas fa-floppy-disk ml-1"></i> حفظ الإعدادات
+          </button>
+        </form>
+
+        <div class="bg-[#141417] border border-white/10 rounded-2xl p-6 mb-8">
+          <h2 class="font-bold mb-4"><i class="fas fa-image text-gold ml-1"></i> شعار الموقع</h2>
+          <div class="flex items-center gap-4 flex-wrap">
+            <img id="logo-preview" src="" alt="" class="w-20 h-20 rounded-xl object-contain bg-[#0b0b0d] border border-white/10 hidden">
+            <div class="flex-1">
+              <input id="logo-file" type="file" accept="image/*"
+                     class="block w-full text-sm text-gray-300 file:ml-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gold file:text-black file:font-bold">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-[#141417] border border-white/10 rounded-2xl p-6">
+          <h2 class="font-bold mb-4"><i class="fas fa-lock text-gold ml-1"></i> تغيير كلمة المرور</h2>
+          <form id="password-form" class="space-y-3">
+            <input id="p-current" type="password" required placeholder="كلمة المرور الحالية" class="inp">
+            <input id="p-new" type="password" required placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" class="inp">
+            <button type="submit" class="bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-xl font-bold transition">تغيير كلمة المرور</button>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/admin/js/admin.js"></script>
+  <script>
+    (async function () {
+      if (!await Admin.guard()) return;
+      await Admin.initLayout('settings');
+      const g = (x) => document.getElementById(x);
+
+      // تحميل الإعدادات + رقم المدير المسجل
+      const { data } = await API.settings();
+      g('s-name').value = data.site_name || '';
+      g('s-desc').value = data.site_description || '';
+      g('s-wa').value = (Admin.me && Admin.me.phone) || data.whatsapp_number || '';
+      g('s-email').value = (Admin.me && Admin.me.email) || data.email || '';
+      if (data.logo_url) { g('logo-preview').src = data.logo_url; g('logo-preview').classList.remove('hidden'); }
+
+      // حفظ الإعدادات (بدون رقم واتساب — ثابت من حساب المدير)
+      g('settings-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await API.put('/settings', {
+            site_name: g('s-name').value,
+            site_description: g('s-desc').value
+          });
+          Utils.toast('تم حفظ الإعدادات', 'success');
+        } catch (ex) { Utils.toast(ex.message, 'error'); }
+      });
+
+      // رفع الشعار
+      g('logo-file').addEventListener('change', async () => {
+        if (!g('logo-file').files.length) return;
+        const fd = new FormData();
+        fd.append('logo', g('logo-file').files[0]);
+        try {
+          const res = await API.post('/settings/logo', fd, true);
+          g('logo-preview').src = res.data.logo_url;
+          g('logo-preview').classList.remove('hidden');
+          Utils.toast('تم رفع الشعار', 'success');
+        } catch (ex) { Utils.toast(ex.message, 'error'); }
+      });
+
+      // تغيير كلمة المرور
+      g('password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await API.post('/auth/change-password', {
+            current_password: g('p-current').value,
+            new_password: g('p-new').value
+          });
+          g('password-form').reset();
+          Utils.toast('تم تغيير كلمة المرور', 'success');
+        } catch (ex) { Utils.toast(ex.message, 'error'); }
+      });
+    })();
+  </script>
+</body>
+</html>
