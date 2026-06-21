@@ -110,11 +110,11 @@ const MotorcycleModel = {
     const s = sanitize(data);
     const res = await db.query(`
       INSERT INTO motorcycles
-        (title, brand, price, currency, description, status, negotiable, main_image, created_by, expires_at)
+        (title, brand, price, currency, description, status, main_image, created_by, expires_at)
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW() + INTERVAL '30 days')
+        ($1, $2, $3, $4, $5, $6, $7, $8, NOW() + INTERVAL '30 days')
       RETURNING id
-    `, [s.title, s.brand, s.price, s.currency, s.description, s.status, s.negotiable, s.main_image, s.created_by]);
+    `, [s.title, s.brand, s.price, s.currency, s.description, s.status, s.main_image, s.created_by]);
     return this.findById(res.rows[0].id);
   },
 
@@ -126,10 +126,10 @@ const MotorcycleModel = {
     await db.query(`
       UPDATE motorcycles SET
         title=$1, brand=$2, price=$3, currency=$4, description=$5,
-        status=$6, negotiable=$7,
+        status=$6,
         updated_at=NOW()
-      WHERE id=$8
-    `, [merged.title, merged.brand, merged.price, merged.currency, merged.description, merged.status, merged.negotiable, id]);
+      WHERE id=$7
+    `, [merged.title, merged.brand, merged.price, merged.currency, merged.description, merged.status, id]);
     return this.findById(id);
   },
 
@@ -296,7 +296,6 @@ const MotorcycleModel = {
 function normalize(row) {
   return {
     ...row,
-    negotiable: !!row.negotiable,
     expiresAt: row.expires_at,
     admin_name: row.admin_name || null,
     admin_phone: row.admin_phone || null
@@ -312,7 +311,6 @@ function sanitize(data) {
     currency: ['SAR', 'YER'].includes(data.currency) ? data.currency : 'SAR',
     description: data.description != null ? String(data.description).trim() : null,
     status: ['available', 'reserved', 'sold'].includes(data.status) ? data.status : 'available',
-    negotiable: data.negotiable === true || data.negotiable === '1' || data.negotiable === 1 ? 1 : 0,
     main_image: data.main_image != null ? String(data.main_image) : null,
     created_by: data.created_by != null ? Number(data.created_by) : null
   };

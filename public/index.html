@@ -38,47 +38,8 @@
   <!-- Stats pills row -->
   <div id="stats-bar" class="container-wide" style="padding:12px 16px 0;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"></div>
 
-  <!-- Filters -->
-  <div id="filter-area">
-    <div class="filter-bar">
-      <button class="filter-toggle" id="filter-toggle-btn"><i class="fas fa-sliders-h"></i> فلترة</button>
-      <div class="filter-desktop" id="filter-desktop">
-        <select id="f-brand" class="f-select">
-          <option value="">كل الماركات</option>
-          <option value="بوتيان (Baotian)">بوتيان (Baotian)</option>
-          <option value="التمساح">التمساح</option>
-          <option value="الزلزال (Zelzal)">الزلزال (Zelzal)</option>
-          <option value="سانيا (Sanya)">سانيا (Sanya)</option>
-          <option value="هاوجين (Haojin)">هاوجين (Haojin)</option>
-          <option value="هاوجو / هوجو (Haojue)">هاوجو / هوجو (Haojue)</option>
-          <option value="سوزوكي (Suzuki)">سوزوكي (Suzuki)</option>
-          <option value="ياماها (Yamaha)">ياماها (Yamaha)</option>
-          <option value="هوندا (Honda)">هوندا (Honda)</option>
-          <option value="ليفان (Lifan)">ليفان (Lifan)</option>
-          <option value="لونسين (Loncin)">لونسين (Loncin)</option>
-          <option value="زونغشين (Zongshen)">زونغشين (Zongshen)</option>
-          <option value="بينيلي (Benelli)">بينيلي (Benelli)</option>
-          <option value="كيوي (Keeway)">كيوي (Keeway)</option>
-          <option value="مارشال">مارشال</option>
-          <option value="كوفكس">كوفكس</option>
-          <option value="مازوتي">مازوتي</option>
-          <option value="كاماكس (Kamax)">كاماكس (Kamax)</option>
-          <option value="ينهي / يينهي (Yinhe)">ينهي / يينهي (Yinhe)</option>
-          <option value="FYM">FYM</option>
-          <option value="فرخ سانيا">فرخ سانيا</option>
-        </select>
-        <select id="f-status" class="f-select">
-          <option value="">الكل</option>
-          <option value="available">متاح</option>
-          <option value="sold">تم البيع</option>
-        </select>
-        <input id="f-min-price" type="number" class="f-price" placeholder="من" min="0">
-        <input id="f-max-price" type="number" class="f-price" placeholder="إلى" min="0">
-        <button class="btn-primary" style="height:42px;padding:0 18px;font-size:.85rem;border-radius:10px;" id="filter-go-btn"><i class="fas fa-search"></i></button>
-      </div>
-    </div>
-    <div id="active-chips" class="container-wide hidden" style="padding:0 16px 8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
-  </div>
+  <!-- Active Chips -->
+  <div id="active-chips" class="container-wide hidden" style="padding:0 16px 8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
 
   <!-- Listings+sort bar -->
   <div class="container-wide listings-toolbar">
@@ -119,11 +80,26 @@
         </p>
       </div>
       <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:16px;padding:20px;text-align:center;">
-        <div style="font-size:2rem;color:var(--primary);margin-bottom:8px;">🆓</div>
-        <h3 style="margin:0 0 6px;font-size:1rem;color:var(--text-primary);">نشر إعلان مجاني</h3>
-        <p style="margin:0;font-size:.82rem;color:var(--text-secondary);line-height:1.6;">
-          تقدر تنشر دراجتك للبيع مجاناً — وتظهر لكل الزوار في حضرموت واليمن.
-        </p>
+        <div style="font-size:2rem;color:var(--primary);margin-bottom:8px;">📞</div>
+        <h3 style="margin:0 0 8px;font-size:1.1rem;color:var(--text-primary);font-weight:700;">لعرض دراجتك التواصل مع المشرفين</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;text-align:right;margin-top:12px;">
+          <a href="https://wa.me/967771825242" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);color:var(--text-primary);text-decoration:none;transition:0.2s;" onmouseover="this.style.background='rgba(212,175,55,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+            <span style="font-weight:600;"><i class="fas fa-user-shield" style="color:var(--primary);margin-left:6px;"></i> المشرف العام</span>
+            <span style="direction:ltr;font-family:monospace;color:var(--text-secondary);">+967 771 825 242</span>
+          </a>
+          <a href="https://wa.me/967780281399" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);color:var(--text-primary);text-decoration:none;transition:0.2s;" onmouseover="this.style.background='rgba(212,175,55,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+            <span style="font-weight:600;"><i class="fas fa-user" style="color:var(--primary);margin-left:6px;"></i> مشرف الساحل</span>
+            <span style="direction:ltr;font-family:monospace;color:var(--text-secondary);">+967 780 281 399</span>
+          </a>
+          <a href="https://wa.me/967780157049" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);color:var(--text-primary);text-decoration:none;transition:0.2s;" onmouseover="this.style.background='rgba(212,175,55,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+            <span style="font-weight:600;"><i class="fas fa-user" style="color:var(--primary);margin-left:6px;"></i> مشرف الوادي</span>
+            <span style="direction:ltr;font-family:monospace;color:var(--text-secondary);">+967 780 157 049</span>
+          </a>
+          <a href="https://wa.me/967784942030" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);color:var(--text-primary);text-decoration:none;transition:0.2s;" onmouseover="this.style.background='rgba(212,175,55,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+            <span style="font-weight:600;"><i class="fas fa-user-tag" style="color:var(--primary);margin-left:6px;"></i> مساعد المشرف</span>
+            <span style="direction:ltr;font-family:monospace;color:var(--text-secondary);">+967 784 942 030</span>
+          </a>
+        </div>
       </div>
     </div>
 
@@ -131,12 +107,13 @@
 
   <!-- Coming soon: سيارات -->
   <section class="coming-soon-section">
-    <div class="coming-soon-card">
+    <div class="coming-soon-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;">
       <div style="position:absolute;top:-30px;left:-30px;font-size:6rem;opacity:.08;">🚗</div>
       <div style="position:absolute;bottom:-20px;right:-20px;font-size:5rem;opacity:.08;">🏎️</div>
-      <span style="display:inline-block;background:rgba(255,255,255,.2);backdrop-filter:blur(4px);color:#fff;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;margin-bottom:8px;">قريباً</span>
-      <h2>🚗 قسم السيارات</h2>
-      <p style="margin:0;font-size:.9rem;color:rgba(255,255,255,.85);">قريباً — منصة دراجتك عندنا راح تشمل أيضاً <strong>عرض وبيع السيارات</strong> في حضرموت واليمن. ترقبوا التحديث!</p>
+      <img src="/real_car.png" alt="سيارة" style="max-width:180px; width:100%; height:auto; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3)); margin-bottom:4px;">
+      <span style="display:inline-block;background:rgba(255,255,255,.2);backdrop-filter:blur(4px);color:#fff;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;margin-bottom:0px;">قريباً</span>
+      <h2>قسم السيارات</h2>
+      <p style="margin:0;font-size:.9rem;color:rgba(255,255,255,.85);max-width:600px;text-align:center;">قريباً — منصة دراجتك عندنا راح تشمل أيضاً <strong>عرض وبيع السيارات</strong> في حضرموت واليمن. ترقبوا التحديث!</p>
     </div>
   </section>
 

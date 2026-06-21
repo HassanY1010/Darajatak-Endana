@@ -52,8 +52,6 @@
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
           ${m.status === 'sold' ? '<span class="badge-sold">تم البيع</span>' : '<span class="badge-available">متاح</span>'}
           <span class="text-muted" style="font-size:.8rem;"><i class="fas fa-eye"></i> ${(m.views||0).toLocaleString('ar-SA')}</span>
-          ${m.negotiable ? '<span class="text-muted" style="font-size:.8rem;"><i class="fas fa-comments-dollar" style="color:var(--primary)"></i> قابل للتفاوض</span>' : ''}
-          <span class="text-muted" style="font-size:.8rem;">#${m.id}</span>
         </div>
 
         <h1 class="detail-title">${m.title}</h1>
@@ -67,7 +65,7 @@
 
         <div class="detail-actions">
           <a href="${waLink}" target="_blank" class="btn-whatsapp whatsapp-pulse ${m.status === 'sold' ? 'opacity-50 pointer-events-none' : ''}">
-            <i class="fab fa-whatsapp"></i> تواصل مع البائع عبر واتساب
+            <i class="fab fa-whatsapp"></i> تواصل مع المشرف
           </a>
           <button class="detail-share" onclick="navigator.clipboard.writeText(location.href).then(()=>Utils.toast('تم نسخ الرابط','success')).catch(()=>Utils.toast('فشل نسخ الرابط','error'))">
             <i class="fas fa-link"></i> نسخ رابط الإعلان

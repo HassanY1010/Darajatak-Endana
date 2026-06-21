@@ -22,15 +22,16 @@
       <div id="admin-topbar" class="h-16 px-4 flex items-center justify-between border-b border-white/10 bg-[#0b0b0d]/80 backdrop-blur sticky top-0 z-30"></div>
 
       <main class="p-4 md:p-8">
-        <h1 class="text-2xl font-black mb-6">لوحة <span class="gold-text-gradient">المعلومات</span></h1>
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h1 class="text-2xl font-black m-0">لوحة <span class="gold-text-gradient">المعلومات</span></h1>
+          <a href="/admin/edit.html" class="gold-gradient text-black font-extrabold px-5 py-2.5 rounded-xl hover:scale-105 transition text-sm">
+            <i class="fas fa-plus ml-1"></i> إضافة دراجة
+          </a>
+        </div>
 
-        <section id="stat-cards" class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8"></section>
+        <section id="stat-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"></section>
 
-        <section class="grid lg:grid-cols-3 gap-6">
-          <div class="bg-[#141417] border border-white/10 rounded-2xl p-6">
-            <h2 class="font-bold mb-4 flex items-center gap-2"><i class="fas fa-chart-pie text-gold"></i> توزيع الحالات</h2>
-            <div style="height:260px;"><canvas id="status-chart"></canvas></div>
-          </div>
+        <section class="grid lg:grid-cols-2 gap-6">
           <div class="bg-[#141417] border border-white/10 rounded-2xl p-6">
             <h2 class="font-bold mb-4 flex items-center gap-2"><i class="fas fa-fire text-gold"></i> الأكثر مشاهدة</h2>
             <div id="top-views" class="space-y-2"><div class="spinner"></div></div>
@@ -60,9 +61,6 @@
       const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
       const cards = [
         { label: 'إجمالي الدراجات', value: fmt(s.total), icon: 'fa-motorcycle', color: 'text-gold', sub: 'مجموع الكلي' },
-        { label: 'متاحة', value: fmt(s.available), icon: 'fa-circle-check', color: 'text-green-400', sub: 'جاهزة للبيع' },
-        { label: 'محجوزة', value: fmt(s.reserved), icon: 'fa-clock', color: 'text-yellow-400', sub: 'قيد الانتظار' },
-        { label: 'تم البيع', value: fmt(s.sold), icon: 'fa-handshake', color: 'text-red-400', sub: 'مباعة' },
         { label: 'المشاهدات', value: fmt(s.totalViews), icon: 'fa-eye', color: 'text-blue-400', sub: 'إجمالي الزوار' }
       ];
       document.getElementById('stat-cards').innerHTML = cards.map(c => `
@@ -75,29 +73,7 @@
           <div class="text-gray-400 text-sm mt-1">${c.label}</div>
         </div>`).join('');
 
-      // رسم بياني للحالات
-      var chartColors = adminChartColors();
-      var statusChart = new Chart(document.getElementById('status-chart'), {
-        type: 'doughnut',
-        data: {
-          labels: ['متاحة', 'محجوزة', 'تم البيع'],
-          datasets: [{
-            data: [s.available, s.reserved, s.sold],
-            backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
-            borderColor: chartColors.border, borderWidth: 3
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: chartColors.legend, font: { family: 'Cairo' } } } }
-        }
-      });
-      window.addEventListener('admin-theme-change', function () {
-        var c = adminChartColors();
-        statusChart.data.datasets[0].borderColor = c.border;
-        statusChart.options.plugins.legend.labels.color = c.legend;
-        statusChart.update();
-      });
+
 
       // أحدث الدراجات
       const { data: recent } = await API.motorcycles('limit=5&sort=newest');

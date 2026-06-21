@@ -37,7 +37,6 @@ async function migrate() {
         description TEXT,
         status      TEXT NOT NULL DEFAULT 'available'
                     CHECK (status IN ('available','reserved','sold')),
-        negotiable  INTEGER NOT NULL DEFAULT 0,
         main_image  TEXT,
         views       INTEGER NOT NULL DEFAULT 0,
         created_by  INTEGER REFERENCES admins(id) ON DELETE SET NULL,
@@ -78,6 +77,7 @@ async function migrate() {
       ALTER TABLE motorcycles DROP COLUMN IF EXISTS model;
       ALTER TABLE motorcycles DROP COLUMN IF EXISTS color;
       ALTER TABLE motorcycles DROP COLUMN IF EXISTS city;
+      ALTER TABLE motorcycles DROP COLUMN IF EXISTS negotiable;
       DROP INDEX IF EXISTS idx_moto_city;
     `);
 
