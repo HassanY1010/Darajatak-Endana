@@ -34,6 +34,10 @@ function scheduleCleanup() {
 
 const app = express();
 
+// إخبار Express بأنه يعمل خلف Reverse Proxy (Render/Nginx)
+// ضروري لكي تعمل مكتبة express-rate-limit بشكل صحيح
+app.set('trust proxy', 1);
+
 // ===== الأمان والوسائط =====
 app.use(helmet({
   contentSecurityPolicy: false, // معطّل لأن الواجهة تستخدم CDN (Tailwind/خطوط)
