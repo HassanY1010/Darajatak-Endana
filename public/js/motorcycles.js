@@ -8,6 +8,9 @@
   function getFilters() {
     return {
       search:   ($('q-search') && $('q-search').value.trim()) || '',
+      city:     ($('q-city') && $('q-city').value.trim()) || '',
+      price:    ($('q-price') && $('q-price').value.trim()) || '',
+      brand:    ($('q-brand') && $('q-brand').value.trim()) || '',
       sort:     ($('sort-select') && $('sort-select').value) || 'newest'
     };
   }
@@ -16,6 +19,9 @@
     const p = new URLSearchParams();
     const f = getFilters();
     if (f.search) p.set('search', f.search);
+    if (f.city) p.set('city', f.city);
+    if (f.price) p.set('maxPrice', f.price);
+    if (f.brand) p.set('brand', f.brand);
     if (f.sort && f.sort !== 'newest') p.set('sort', f.sort);
     p.set('page', state.page);
     p.set('limit', state.limit);
@@ -26,6 +32,9 @@
     const p = new URLSearchParams();
     const f = getFilters();
     if (f.search) p.set('search', f.search);
+    if (f.city) p.set('city', f.city);
+    if (f.price) p.set('price', f.price);
+    if (f.brand) p.set('brand', f.brand);
     if (f.sort && f.sort !== 'newest') p.set('sort', f.sort);
     if (state.page > 1) p.set('page', state.page);
     const qs = p.toString();
@@ -36,6 +45,9 @@
     const f = getFilters();
     const chips = [];
     if (f.search) chips.push({ key: 'search', label: '"' + f.search + '"' });
+    if (f.city) chips.push({ key: 'city', label: 'المدينة: ' + f.city });
+    if (f.price) chips.push({ key: 'price', label: 'السعر حتى: ' + f.price });
+    if (f.brand) chips.push({ key: 'brand', label: 'النوع: ' + f.brand });
     const container = $('active-chips');
     if (!container) return;
     if (!chips.length) { container.innerHTML = ''; container.classList.add('hidden'); return; }
@@ -47,6 +59,9 @@
       btn.addEventListener('click', () => {
         const key = btn.dataset.key;
         if (key === 'search' && $('q-search')) $('q-search').value = '';
+        if (key === 'city' && $('q-city')) $('q-city').value = '';
+        if (key === 'price' && $('q-price')) $('q-price').value = '';
+        if (key === 'brand' && $('q-brand')) $('q-brand').value = '';
         state.page = 1; load();
       });
     });
@@ -111,19 +126,33 @@
   function readURLParams() {
     const params = new URLSearchParams(location.search);
     if (params.get('search') && $('q-search')) $('q-search').value = params.get('search');
+    if (params.get('city') && $('q-city')) $('q-city').value = params.get('city');
+    if (params.get('price') && $('q-price')) $('q-price').value = params.get('price');
+    if (params.get('brand') && $('q-brand')) $('q-brand').value = params.get('brand');
     if (params.get('sort') && $('sort-select')) $('sort-select').value = params.get('sort');
     if (params.get('page')) state.page = Number(params.get('page'));
   }
 
   function bind() {
-    var searchEl = $('q-search');
-    if (searchEl) {
-      searchEl.addEventListener('input', () => {
-        clearTimeout(window._sd);
-        window._sd = setTimeout(() => { state.page = 1; load(); }, 350);
-      });
-      searchEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { clearTimeout(window._sd); state.page = 1; load(); } });
-    }
+    const debounceLoad = () => {
+      clearTimeout(window._sd);
+      window._sd = setTimeout(() => { state.page = 1; load(); }, 350);
+    };
+    
+    ['q-search', 'q-city', 'q-price', 'q-brand'].forEach(id => {
+      const el = $(id);
+      if (el) {
+        el.addEventListener('input', debounceLoad);
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            clearTimeout(window._sd);
+            state.page = 1;
+            load();
+          }
+        });
+      }
+    });
+
     [$('sort-select')].forEach(el => {
       if (el) el.addEventListener('change', () => { state.page = 1; load(); });
     });

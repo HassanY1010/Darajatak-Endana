@@ -20,6 +20,30 @@
   <div id="site-header"></div>
 
   <div class="container-wide page-section">
+    <!-- Listings+sort bar -->
+    <div class="listings-toolbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;margin-bottom:16px;">
+      <!-- Right side: inputs -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:280px;">
+        <div style="position:relative;flex:1;min-width:180px;display:flex;align-items:center;background:var(--bg-card);border:1px solid var(--border-light);border-radius:12px;padding:0 12px;height:42px;">
+          <i class="fas fa-search" style="color:var(--text-muted);margin-left:8px;"></i>
+          <input id="q-search" type="text" placeholder="البحث عن دراجة..." style="background:transparent;border:none;outline:none;color:var(--text-primary);width:100%;font-size:.85rem;">
+        </div>
+        <input id="q-city" type="text" placeholder="المدينة..." style="width:110px;height:42px;border:1px solid var(--border-light);background:var(--bg-card);border-radius:12px;padding:0 12px;font-size:.85rem;color:var(--text-primary);outline:none;">
+        <input id="q-price" type="number" placeholder="السعر..." style="width:110px;height:42px;border:1px solid var(--border-light);background:var(--bg-card);border-radius:12px;padding:0 12px;font-size:.85rem;color:var(--text-primary);outline:none;">
+        <input id="q-brand" type="text" placeholder="النوع..." style="width:110px;height:42px;border:1px solid var(--border-light);background:var(--bg-card);border-radius:12px;padding:0 12px;font-size:.85rem;color:var(--text-primary);outline:none;">
+      </div>
+      <!-- Left side: count and sort -->
+      <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+        <span id="result-count" class="text-muted" style="font-size:.85rem;font-weight:600;"></span>
+        <select id="sort-select" class="f-select" style="min-width:auto;width:auto;flex:none;height:42px;border:1px solid var(--border-light);background:var(--bg-card);border-radius:12px;padding:0 12px;font-size:.85rem;color:var(--text-primary);outline:none;cursor:pointer;">
+          <option value="newest">الأحدث</option>
+          <option value="price_asc">السعر: الأقل أولاً</option>
+          <option value="price_desc">السعر: الأعلى أولاً</option>
+          <option value="views_desc">الأكثر مشاهدة</option>
+        </select>
+      </div>
+    </div>
+
     <div id="listings" class="card-grid card-grid--in-container"></div>
     <div id="pagination"></div>
   </div>

@@ -66,10 +66,6 @@ function renderHeader() {
             </a>
           </div>
         </div>
-        <div class="search-box header-search">
-          <i class="fas fa-search"></i>
-          <input id="q-search" type="text" placeholder="ابحث عن دراجة..." enterkeyhint="search">
-        </div>
       </div>
     </header>`;
 }

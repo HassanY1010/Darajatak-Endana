@@ -10,7 +10,7 @@ const MotorcycleModel = {
   /**
    * جلب قائمة الدراجات مع فلترة/بحث/ترتيب/ترقيم صفحات
    */
-  async list({ search, brand, status, minPrice, maxPrice, sort, page = 1, limit = 12, includeExpired = false } = {}) {
+  async list({ search, brand, city, status, minPrice, maxPrice, sort, page = 1, limit = 12, includeExpired = false } = {}) {
     const where = [];
     const params = [];
     let idx = 1;
@@ -25,8 +25,13 @@ const MotorcycleModel = {
       idx++;
     }
     if (brand) {
-      where.push(`brand = $${idx}`);
-      params.push(brand);
+      where.push(`brand ILIKE $${idx}`);
+      params.push(`%${brand}%`);
+      idx++;
+    }
+    if (city) {
+      where.push(`(title ILIKE $${idx} OR description ILIKE $${idx})`);
+      params.push(`%${city}%`);
       idx++;
     }
     if (status) {
