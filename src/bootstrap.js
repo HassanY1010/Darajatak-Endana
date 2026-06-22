@@ -7,7 +7,7 @@ const ADMINS = [
   { name: 'مشرف الساحل', email: 'coast@darajtak.com', password: '123456', phone: '967780281399', role: 'editor' },
   { name: 'مشرف الوادي', email: 'valley@darajtak.com', password: '123456', phone: '967780157049', role: 'editor' },
   { name: 'المشرف العام',  email: 'admin@daragatuk.sa', password: '123456',  phone: '967771825242', role: 'admin' },
-  { name: 'مساعد المشرف',  email: 'assistant@darajtak.com', password: '123456', phone: '967784942030', role: 'editor' }
+  { name: 'مساعد المشرف',  email: 'ass@darajtak.com', password: '123456', phone: '967784942030', role: 'editor' }
 ];
 
 async function seedAdmins() {

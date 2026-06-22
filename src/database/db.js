@@ -79,6 +79,7 @@ async function migrate() {
       ALTER TABLE motorcycles DROP COLUMN IF EXISTS city;
       ALTER TABLE motorcycles DROP COLUMN IF EXISTS negotiable;
       DROP INDEX IF EXISTS idx_moto_city;
+      UPDATE admins SET email = 'ass@darajtak.com' WHERE email = 'assistant@darajtak.com';
     `);
 
     // إعدادات افتراضية للموقع
