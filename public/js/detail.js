@@ -51,6 +51,7 @@
       <div class="detail-info">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
           ${m.status === 'sold' ? '<span class="badge-sold">تم البيع</span>' : '<span class="badge-available">متاح</span>'}
+          ${m.ad_number ? `<span class="badge-ad-number">رقم العرض: ${m.ad_number}</span>` : ''}
           <span class="text-muted" style="font-size:.8rem;"><i class="fas fa-eye"></i> ${(m.views||0).toLocaleString('ar-SA')}</span>
         </div>
 

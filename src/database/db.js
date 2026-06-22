@@ -42,7 +42,8 @@ async function migrate() {
         created_by  INTEGER REFERENCES admins(id) ON DELETE SET NULL,
         expires_at  TIMESTAMP NOT NULL DEFAULT (NOW() + INTERVAL '30 days'),
         created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-        updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
+        updated_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+        ad_number   TEXT
       );
 
       CREATE TABLE IF NOT EXISTS images (
@@ -80,6 +81,7 @@ async function migrate() {
       ALTER TABLE motorcycles DROP COLUMN IF EXISTS negotiable;
       DROP INDEX IF EXISTS idx_moto_city;
       UPDATE admins SET email = 'ass@darajtak.com' WHERE email = 'assistant@darajtak.com';
+      ALTER TABLE motorcycles ADD COLUMN IF NOT EXISTS ad_number TEXT;
     `);
 
     // إعدادات افتراضية للموقع

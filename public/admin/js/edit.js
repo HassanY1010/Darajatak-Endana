@@ -13,13 +13,15 @@
     g('f-currency').value = m.currency || 'SAR';
     g('f-status').value = m.status || 'available';
     g('f-description').value = m.description || '';
+    g('f-ad-number').value = m.ad_number || '';
   }
 
   function collect() {
     return {
       title: g('f-title').value, brand: g('f-brand').value,
       price: g('f-price').value, currency: g('f-currency').value, status: g('f-status').value,
-      description: g('f-description').value
+      description: g('f-description').value,
+      ad_number: g('f-ad-number').value
     };
   }
 

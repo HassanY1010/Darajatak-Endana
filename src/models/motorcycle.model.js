@@ -110,11 +110,11 @@ const MotorcycleModel = {
     const s = sanitize(data);
     const res = await db.query(`
       INSERT INTO motorcycles
-        (title, brand, price, currency, description, status, main_image, created_by, expires_at)
+        (title, brand, price, currency, description, status, main_image, created_by, expires_at, ad_number)
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, NOW() + INTERVAL '30 days')
+        ($1, $2, $3, $4, $5, $6, $7, $8, NOW() + INTERVAL '30 days', $9)
       RETURNING id
-    `, [s.title, s.brand, s.price, s.currency, s.description, s.status, s.main_image, s.created_by]);
+    `, [s.title, s.brand, s.price, s.currency, s.description, s.status, s.main_image, s.created_by, s.ad_number]);
     return this.findById(res.rows[0].id);
   },
 
@@ -126,10 +126,10 @@ const MotorcycleModel = {
     await db.query(`
       UPDATE motorcycles SET
         title=$1, brand=$2, price=$3, currency=$4, description=$5,
-        status=$6,
+        status=$6, ad_number=$7,
         updated_at=NOW()
-      WHERE id=$7
-    `, [merged.title, merged.brand, merged.price, merged.currency, merged.description, merged.status, id]);
+      WHERE id=$8
+    `, [merged.title, merged.brand, merged.price, merged.currency, merged.description, merged.status, merged.ad_number, id]);
     return this.findById(id);
   },
 
@@ -312,7 +312,8 @@ function sanitize(data) {
     description: data.description != null ? String(data.description).trim() : null,
     status: ['available', 'reserved', 'sold'].includes(data.status) ? data.status : 'available',
     main_image: data.main_image != null ? String(data.main_image) : null,
-    created_by: data.created_by != null ? Number(data.created_by) : null
+    created_by: data.created_by != null ? Number(data.created_by) : null,
+    ad_number: data.ad_number != null ? String(data.ad_number).trim() : null
   };
 }
 

@@ -141,6 +141,16 @@ img, video, canvas, svg {
   font-size: .75rem;
   font-weight: 700;
 }
+.badge-ad-number {
+  display: inline-block;
+  background: rgba(212, 175, 55, 0.12);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 700;
+}
 
 .text-primary { color: var(--primary); }
 .text-muted { color: var(--text-muted); }
