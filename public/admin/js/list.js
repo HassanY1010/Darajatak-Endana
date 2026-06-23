@@ -58,7 +58,7 @@
     tbody.innerHTML = data.map(m => `
       <tr class="admin-table-row border-t">
         <td data-label=""><img src="${Utils.img(m.main_image)}" class="w-14 h-14 rounded-xl object-cover" alt=""></td>
-        <td data-label="الاسم"><div class="font-bold">${m.title}</div><div class="text-xs text-gray-400">${m.brand}</div></td>
+        <td data-label="الاسم"><div class="font-bold">${m.title}</div><div class="text-xs text-gray-400">${m.brand} ${m.city ? ' | ' + m.city : ''}</div></td>
         <td data-label="السعر" class="font-bold whitespace-nowrap text-gold">${Utils.formatPrice(m.price, m.currency)}</td>
         <td data-label="الحالة">${statusSelect(m)}</td>
         <td data-label="المشاهدات" class="text-center">${viewsCell(m.views)}</td>

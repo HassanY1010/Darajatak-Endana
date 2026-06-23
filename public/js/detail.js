@@ -60,6 +60,7 @@
 
         <div class="detail-specs">
           ${m.brand ? '<div class="detail-spec"><div class="detail-spec-label">الشركة</div><div class="detail-spec-value">' + m.brand + '</div></div>' : ''}
+          ${m.city ? '<div class="detail-spec"><div class="detail-spec-label">المدينة</div><div class="detail-spec-value">' + m.city + '</div></div>' : ''}
         </div>
 
         ${m.description ? '<div class="detail-desc">' + m.description + '</div>' : ''}

@@ -70,10 +70,10 @@ const Utils = {
     const clean = String(phone || '').replace(/[^0-9]/g, '');
     const msg =
       `مرحباً، أنا مهتم بهذه الدراجة من منصة "دراجتك عندنا":\n\n` +
-      `🔖 رقم الإعلان: ${moto.id}\n` +
+      `🔖 رقم الإعلان: ${moto.ad_number || moto.id}\n` +
       `🏍️ الدراجة: ${moto.title}\n` +
       `💰 السعر: ${this.formatPrice(moto.price, moto.currency)}\n` +
-      `📍 المدينة: ${moto.city}\n\n` +
+      `📍 المدينة: ${moto.city || 'غير محدد'}\n\n` +
       `هل ما زالت متاحة؟`;
     return `https://wa.me/${clean}?text=${encodeURIComponent(msg)}`;
   },

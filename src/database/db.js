@@ -43,7 +43,8 @@ async function migrate() {
         expires_at  TIMESTAMP NOT NULL DEFAULT (NOW() + INTERVAL '30 days'),
         created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-        ad_number   TEXT
+        ad_number   TEXT,
+        city        TEXT
       );
 
       CREATE TABLE IF NOT EXISTS images (
@@ -77,11 +78,10 @@ async function migrate() {
     await pool.query(`
       ALTER TABLE motorcycles DROP COLUMN IF EXISTS model;
       ALTER TABLE motorcycles DROP COLUMN IF EXISTS color;
-      ALTER TABLE motorcycles DROP COLUMN IF EXISTS city;
       ALTER TABLE motorcycles DROP COLUMN IF EXISTS negotiable;
-      DROP INDEX IF EXISTS idx_moto_city;
       UPDATE admins SET email = 'ass@darajtak.com' WHERE email = 'assistant@darajtak.com';
       ALTER TABLE motorcycles ADD COLUMN IF NOT EXISTS ad_number TEXT;
+      ALTER TABLE motorcycles ADD COLUMN IF NOT EXISTS city TEXT;
     `);
 
     // إعدادات افتراضية للموقع
