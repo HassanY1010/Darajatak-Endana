@@ -389,6 +389,7 @@ img, video, canvas, svg {
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
 .moto-card-img {
+  display: block;
   position: relative;
   aspect-ratio: 4/3;
   overflow: hidden;
