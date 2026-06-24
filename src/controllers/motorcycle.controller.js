@@ -19,7 +19,7 @@ const MotorcycleController = {
         maxPrice: req.query.maxPrice,
         sort: req.query.sort,
         page: req.query.page || 1,
-        limit: req.query.limit || 12,
+        limit: req.query.limit || 24,
         includeExpired: req.query.includeExpired === 'true' || !!req.admin
       });
       res.json({ success: true, ...result });

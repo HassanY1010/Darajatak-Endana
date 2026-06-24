@@ -1,6 +1,6 @@
 (function () {
   if (!document.getElementById('listings')) return;
-  let state = { page: 1, limit: 12 };
+  let state = { page: 1, limit: 24 };
 
   const $ = (id) => document.getElementById(id);
   const qs = (s) => (document.querySelector(s));

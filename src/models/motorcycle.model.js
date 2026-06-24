@@ -10,7 +10,7 @@ const MotorcycleModel = {
   /**
    * جلب قائمة الدراجات مع فلترة/بحث/ترتيب/ترقيم صفحات
    */
-  async list({ search, brand, city, status, minPrice, maxPrice, sort, page = 1, limit = 12, includeExpired = false } = {}) {
+  async list({ search, brand, city, status, minPrice, maxPrice, sort, page = 1, limit = 24, includeExpired = false } = {}) {
     const where = [];
     const params = [];
     let idx = 1;
