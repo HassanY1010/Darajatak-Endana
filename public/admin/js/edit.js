@@ -149,6 +149,13 @@
         g('views-count').textContent = (data.views || 0).toLocaleString('ar-SA');
       } catch (e) { Utils.toast('تعذّر تحميل الدراجة', 'error'); }
     } else {
+      if (Admin.me) {
+        if (Admin.me.email === 'coast@darajtak.com') {
+          g('f-region').value = 'ساحل حضرموت';
+        } else if (Admin.me.email === 'valley@darajtak.com') {
+          g('f-region').value = 'وادي حضرموت';
+        }
+      }
       renderImages();
     }
   })();
