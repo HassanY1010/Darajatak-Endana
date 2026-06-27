@@ -15,6 +15,7 @@
     g('f-description').value = m.description || '';
     g('f-ad-number').value = m.ad_number || '';
     g('f-city').value = m.city || '';
+    g('f-region').value = m.region || '';
   }
 
   function collect() {
@@ -23,7 +24,8 @@
       price: g('f-price').value, currency: g('f-currency').value, status: g('f-status').value,
       description: g('f-description').value,
       ad_number: g('f-ad-number').value,
-      city: g('f-city').value
+      city: g('f-city').value,
+      region: g('f-region').value
     };
   }
 

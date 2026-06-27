@@ -10,7 +10,7 @@ const MotorcycleModel = {
   /**
    * جلب قائمة الدراجات مع فلترة/بحث/ترتيب/ترقيم صفحات
    */
-  async list({ search, brand, city, status, minPrice, maxPrice, sort, page = 1, limit = 24, includeExpired = false } = {}) {
+  async list({ search, brand, city, region, status, minPrice, maxPrice, sort, page = 1, limit = 24, includeExpired = false } = {}) {
     const where = [];
     const params = [];
     let idx = 1;
@@ -32,6 +32,11 @@ const MotorcycleModel = {
     if (city) {
       where.push(`city ILIKE $${idx}`);
       params.push(`%${city}%`);
+      idx++;
+    }
+    if (region) {
+      where.push(`region = $${idx}`);
+      params.push(region);
       idx++;
     }
     if (status) {
@@ -115,11 +120,11 @@ const MotorcycleModel = {
     const s = sanitize(data);
     const res = await db.query(`
       INSERT INTO motorcycles
-        (title, brand, price, currency, description, status, main_image, created_by, expires_at, ad_number, city)
+        (title, brand, price, currency, description, status, main_image, created_by, expires_at, ad_number, city, region)
       VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, NOW() + INTERVAL '30 days', $9, $10)
+        ($1, $2, $3, $4, $5, $6, $7, $8, NOW() + INTERVAL '30 days', $9, $10, $11)
       RETURNING id
-    `, [s.title, s.brand, s.price, s.currency, s.description, s.status, s.main_image, s.created_by, s.ad_number, s.city]);
+    `, [s.title, s.brand, s.price, s.currency, s.description, s.status, s.main_image, s.created_by, s.ad_number, s.city, s.region]);
     return this.findById(res.rows[0].id);
   },
 
@@ -131,10 +136,10 @@ const MotorcycleModel = {
     await db.query(`
       UPDATE motorcycles SET
         title=$1, brand=$2, price=$3, currency=$4, description=$5,
-        status=$6, ad_number=$7, city=$8,
+        status=$6, ad_number=$7, city=$8, region=$9,
         updated_at=NOW()
-      WHERE id=$9
-    `, [merged.title, merged.brand, merged.price, merged.currency, merged.description, merged.status, merged.ad_number, merged.city, id]);
+      WHERE id=$10
+    `, [merged.title, merged.brand, merged.price, merged.currency, merged.description, merged.status, merged.ad_number, merged.city, merged.region, id]);
     return this.findById(id);
   },
 
@@ -319,7 +324,8 @@ function sanitize(data) {
     main_image: data.main_image != null ? String(data.main_image) : null,
     created_by: data.created_by != null ? Number(data.created_by) : null,
     ad_number: data.ad_number != null ? String(data.ad_number).trim() : null,
-    city: data.city != null ? String(data.city).trim() : null
+    city: data.city != null ? String(data.city).trim() : null,
+    region: data.region != null ? String(data.region).trim() : null
   };
 }
 

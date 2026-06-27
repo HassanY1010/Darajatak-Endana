@@ -44,7 +44,8 @@ async function migrate() {
         created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at  TIMESTAMP NOT NULL DEFAULT NOW(),
         ad_number   TEXT,
-        city        TEXT
+        city        TEXT,
+        region      TEXT
       );
 
       CREATE TABLE IF NOT EXISTS images (
@@ -82,6 +83,7 @@ async function migrate() {
       UPDATE admins SET email = 'ass@darajtak.com' WHERE email = 'assistant@darajtak.com';
       ALTER TABLE motorcycles ADD COLUMN IF NOT EXISTS ad_number TEXT;
       ALTER TABLE motorcycles ADD COLUMN IF NOT EXISTS city TEXT;
+      ALTER TABLE motorcycles ADD COLUMN IF NOT EXISTS region TEXT;
     `);
 
     // إعدادات افتراضية للموقع

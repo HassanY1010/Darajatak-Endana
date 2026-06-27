@@ -13,6 +13,7 @@ const MotorcycleController = {
       const result = await MotorcycleModel.list({
         search: req.query.search,
         city: req.query.city,
+        region: req.query.region,
         brand: req.query.brand,
         status: req.query.status,
         minPrice: req.query.minPrice,
