@@ -36,6 +36,7 @@
     const s = document.getElementById('search').value.trim();
     if (s) p.set('search', s);
     if (document.getElementById('status-filter').value) p.set('status', document.getElementById('status-filter').value);
+    if (document.getElementById('region-filter').value) p.set('region', document.getElementById('region-filter').value);
     const sort = document.getElementById('sort-filter').value;
     if (sort && sort !== 'newest') p.set('sort', sort);
     p.set('page', state.page); p.set('limit', state.limit);
@@ -137,6 +138,7 @@
       clearTimeout(timer); timer = setTimeout(() => { state.page = 1; load(); }, 350);
     });
     document.getElementById('status-filter').addEventListener('change', () => { state.page = 1; load(); });
+    document.getElementById('region-filter').addEventListener('change', () => { state.page = 1; load(); });
     document.getElementById('sort-filter').addEventListener('change', () => { state.page = 1; load(); });
     load();
   })();
