@@ -25,11 +25,13 @@ const SettingsModel = {
 
   async setMany(obj = {}) {
     const allowed = ['site_name', 'site_description', 'whatsapp_number', 'logo_url', 'email'];
+    const promises = [];
     for (const [k, v] of Object.entries(obj)) {
       if (allowed.includes(k)) {
-        await this.set(k, v);
+        promises.push(this.set(k, v));
       }
     }
+    await Promise.all(promises);
     return this.getAll();
   }
 };

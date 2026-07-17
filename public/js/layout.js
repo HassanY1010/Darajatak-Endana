@@ -16,10 +16,16 @@ initTheme();
 
 async function loadSite() {
   try {
-    const res = await API.settings();
-    SITE = res.data || {};
+    const cached = sessionStorage.getItem('site_settings');
+    if (cached) {
+      SITE = JSON.parse(cached);
+    } else {
+      const res = await API.settings();
+      SITE = res.data || {};
+      sessionStorage.setItem('site_settings', JSON.stringify(SITE));
+    }
   } catch {
-    SITE = { site_name: 'دراجتك عندنا', whatsapp_number: '967000000000' };
+    SITE = { site_name: 'دراجتك علينا', whatsapp_number: '967000000000' };
   }
   renderHeader();
   renderFooter();

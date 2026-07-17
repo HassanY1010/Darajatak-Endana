@@ -16,6 +16,9 @@ require('./bootstrap');
 
 const MotorcycleModel = require('./models/motorcycle.model');
 
+const https = require('https');
+const http = require('http');
+
 // تشغيل التنظيف التلقائي للعروض المنتهية وسجلات المشاهدات القديمة
 function scheduleCleanup() {
   const run = async () => {
@@ -30,6 +33,26 @@ function scheduleCleanup() {
   };
   run();
   setInterval(run, 60 * 60 * 1000);
+}
+
+// إبقاء الخادم نشطاً لمنع النوم البارد على Render
+function keepAlive() {
+  const url = process.env.RENDER_EXTERNAL_URL || process.env.APP_URL;
+  if (!url) return;
+  
+  const ping = () => {
+    const client = url.startsWith('https') ? https : http;
+    client.get(`${url}/api/health`, (res) => {
+      console.log(`📡 Keep-alive ping sent to ${url}/api/health: ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.error(`📡 Keep-alive ping error:`, err.message);
+    });
+  };
+  
+  // Ping كل 10 دقائق
+  setInterval(ping, 10 * 60 * 1000);
+  // تشغيل أول فحص بعد دقيقة واحدة من بدء الخادم
+  setTimeout(ping, 60 * 1000);
 }
 
 const app = express();
@@ -55,12 +78,11 @@ app.use(express.static(config.paths.public));
 // ===== Sitemap =====
 app.get('/sitemap.xml', async (req, res) => {
   try {
-    const listResult = await MotorcycleModel.list({ limit: 10000 });
-    const motos = listResult.data || [];
+    const motos = await MotorcycleModel.listForSitemap();
     const pages = motos.map(m => `
   <url>
     <loc>https://daragatuk.sa/motorcycle.html?id=${encodeURIComponent(m.id)}</loc>
-    <lastmod>${(m.updated_at || m.created_at || '').split(' ')[0]}</lastmod>
+    <lastmod>${new Date(m.updated_at || m.created_at).toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`).join('');
@@ -114,7 +136,10 @@ app.use(errorHandler);
 app.listen(config.port, () => {
   const db = require('./database/db');
   db.ready
-    .then(() => scheduleCleanup())
+    .then(() => {
+      scheduleCleanup();
+      keepAlive();
+    })
     .catch(() => {});
   console.log('═══════════════════════════════════════════');
   console.log('🏍️  دراجتك علينا — الخادم يعمل');

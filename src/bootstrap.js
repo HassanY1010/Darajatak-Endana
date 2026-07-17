@@ -23,7 +23,7 @@ async function seedAdmins() {
     `;
 
     for (const a of ADMINS) {
-      const hash = bcrypt.hashSync(a.password, 10);
+      const hash = await bcrypt.hash(a.password, 10);
       await db.query(upsertQuery, [a.name, a.email, hash, a.phone, a.role]);
       console.log(`✅ تم التأكد من حساب: ${a.name} — ${a.email}`);
     }

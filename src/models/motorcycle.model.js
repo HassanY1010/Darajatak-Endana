@@ -245,18 +245,24 @@ const MotorcycleModel = {
   // ===== الإحصائيات =====
   async stats() {
     const active = "expires_at >= NOW()";
-    const totalRes = await db.query(`SELECT COUNT(*) AS c FROM motorcycles WHERE ${active}`);
-    const availableRes = await db.query(`SELECT COUNT(*) AS c FROM motorcycles WHERE status='available' AND ${active}`);
-    const reservedRes = await db.query(`SELECT COUNT(*) AS c FROM motorcycles WHERE status='reserved' AND ${active}`);
-    const soldRes = await db.query(`SELECT COUNT(*) AS c FROM motorcycles WHERE status='sold' AND ${active}`);
-    const viewsRes = await db.query(`SELECT COALESCE(SUM(views),0) AS s FROM motorcycles WHERE ${active}`);
+    const res = await db.query(`
+      SELECT 
+        COUNT(*) AS total,
+        COUNT(CASE WHEN status = 'available' THEN 1 END) AS available,
+        COUNT(CASE WHEN status = 'reserved' THEN 1 END) AS reserved,
+        COUNT(CASE WHEN status = 'sold' THEN 1 END) AS sold,
+        COALESCE(SUM(views), 0) AS views
+      FROM motorcycles 
+      WHERE ${active}
+    `);
+    const row = res.rows[0] || {};
     
     return {
-      total: parseInt(totalRes.rows[0].c, 10),
-      available: parseInt(availableRes.rows[0].c, 10),
-      reserved: parseInt(reservedRes.rows[0].c, 10),
-      sold: parseInt(soldRes.rows[0].c, 10),
-      totalViews: parseInt(viewsRes.rows[0].s, 10)
+      total: parseInt(row.total || 0, 10),
+      available: parseInt(row.available || 0, 10),
+      reserved: parseInt(row.reserved || 0, 10),
+      sold: parseInt(row.sold || 0, 10),
+      totalViews: parseInt(row.views || 0, 10)
     };
   },
 
@@ -268,6 +274,13 @@ const MotorcycleModel = {
       cities: [],
       brands: brandsRes.rows.map(r => r.brand)
     };
+  },
+
+  async listForSitemap() {
+    const res = await db.query(
+      "SELECT id, created_at, updated_at FROM motorcycles WHERE expires_at >= NOW() ORDER BY created_at DESC"
+    );
+    return res.rows;
   },
 
   // ===== التنظيف التلقائي للعروض المنتهية =====

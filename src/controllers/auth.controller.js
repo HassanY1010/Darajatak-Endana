@@ -12,7 +12,7 @@ const AuthController = {
       }
 
       const admin = await AdminModel.findByEmail(email);
-      if (!admin || !AdminModel.verifyPassword(password, admin.password_hash)) {
+      if (!admin || !(await AdminModel.verifyPassword(password, admin.password_hash))) {
         return res.status(401).json({ success: false, message: 'بيانات الدخول غير صحيحة' });
       }
 
@@ -58,7 +58,7 @@ const AuthController = {
         return res.status(422).json({ success: false, message: 'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل' });
       }
       const admin = await AdminModel.findByEmail(req.admin.email);
-      if (!admin || !AdminModel.verifyPassword(current_password, admin.password_hash)) {
+      if (!admin || !(await AdminModel.verifyPassword(current_password, admin.password_hash))) {
         return res.status(401).json({ success: false, message: 'كلمة المرور الحالية غير صحيحة' });
       }
       await AdminModel.changePassword(admin.id, new_password);

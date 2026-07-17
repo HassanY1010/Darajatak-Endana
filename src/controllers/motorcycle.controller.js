@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const MotorcycleModel = require('../models/motorcycle.model');
 const config = require('../config');
 const { uploadImage, deleteImage } = require('../utils/supabase');
+const { cache, KEYS, invalidate } = require('../utils/cache');
 
 const MotorcycleController = {
   // ===== عام (Public) =====
@@ -52,7 +53,13 @@ const MotorcycleController = {
 
   async featured(req, res) {
     try {
+      const cached = cache.get(KEYS.FEATURED);
+      if (cached) {
+        return res.json({ success: true, data: cached });
+      }
+      
       const result = await MotorcycleModel.list({ status: 'available', sort: 'newest', limit: 6, page: 1 });
+      cache.set(KEYS.FEATURED, result.data);
       res.json({ success: true, data: result.data });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -61,7 +68,14 @@ const MotorcycleController = {
 
   async stats(req, res) {
     try {
-      res.json({ success: true, data: await MotorcycleModel.stats() });
+      const cached = cache.get(KEYS.STATS);
+      if (cached) {
+        return res.json({ success: true, data: cached });
+      }
+      
+      const data = await MotorcycleModel.stats();
+      cache.set(KEYS.STATS, data);
+      res.json({ success: true, data });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
     }
@@ -81,6 +95,8 @@ const MotorcycleController = {
       const moto = await MotorcycleModel.create({ ...req.body, created_by: req.admin.id });
       // ربط الصور المرفوعة إن وجدت
       await attachUploadedImages(req, moto.id);
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.status(201).json({ success: true, message: 'تمت إضافة الدراجة', data: await MotorcycleModel.findById(moto.id) });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -92,6 +108,8 @@ const MotorcycleController = {
       const moto = await MotorcycleModel.update(req.params.id, req.body);
       if (!moto) return res.status(404).json({ success: false, message: 'الدراجة غير موجودة' });
       await attachUploadedImages(req, moto.id);
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.json({ success: true, message: 'تم تحديث الدراجة', data: await MotorcycleModel.findById(moto.id) });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -102,6 +120,8 @@ const MotorcycleController = {
     try {
       const moto = await MotorcycleModel.updateStatus(req.params.id, req.body.status);
       if (!moto) return res.status(404).json({ success: false, message: 'الدراجة غير موجودة' });
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.json({ success: true, message: 'تم تغيير الحالة', data: moto });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -112,6 +132,8 @@ const MotorcycleController = {
     try {
       const moto = await MotorcycleModel.renew(req.params.id);
       if (!moto) return res.status(404).json({ success: false, message: 'الدراجة غير موجودة' });
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.json({ success: true, message: 'تم تجديد الإعلان لـ 30 يوماً إضافية', data: moto });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -128,6 +150,8 @@ const MotorcycleController = {
       for (const img of images) {
         await deleteStorageImage(img.image_url);
       }
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.json({ success: true, message: 'تم حذف الدراجة' });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -143,15 +167,16 @@ const MotorcycleController = {
       const existingImages = await MotorcycleModel.getImages(req.params.id);
       const existing = existingImages.length;
       
-      const added = [];
-      for (let i = 0; i < req.files.length; i++) {
-        const f = req.files[i];
+      const uploadPromises = req.files.map(async (f, i) => {
         const ext = path.extname(f.originalname).toLowerCase() || '.jpg';
         const filename = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`;
         const url = await uploadImage(filename, f.buffer, f.mimetype);
-        const img = await MotorcycleModel.addImage(req.params.id, url, existing + i);
-        added.push(img);
-      }
+        return MotorcycleModel.addImage(req.params.id, url, existing + i);
+      });
+      
+      const added = await Promise.all(uploadPromises);
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.status(201).json({ success: true, message: 'تم رفع الصور', data: added });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -166,6 +191,8 @@ const MotorcycleController = {
       const existingImages = await MotorcycleModel.getImages(req.params.id);
       const existing = existingImages.length;
       const img = await MotorcycleModel.addImage(req.params.id, image_url, existing);
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.status(201).json({ success: true, data: img });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -177,6 +204,8 @@ const MotorcycleController = {
       const img = await MotorcycleModel.deleteImage(req.params.imageId);
       if (!img) return res.status(404).json({ success: false, message: 'الصورة غير موجودة' });
       await deleteStorageImage(img.image_url);
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.json({ success: true, message: 'تم حذف الصورة' });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -188,6 +217,8 @@ const MotorcycleController = {
       const { image_url } = req.body || {};
       if (!image_url) return res.status(422).json({ success: false, message: 'رابط الصورة مطلوب' });
       const moto = await MotorcycleModel.setMainImage(req.params.id, image_url);
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.json({ success: true, message: 'تم تعيين الصورة الرئيسية', data: moto });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -199,6 +230,8 @@ const MotorcycleController = {
       const { order } = req.body || {};
       if (!Array.isArray(order)) return res.status(422).json({ success: false, message: 'ترتيب غير صالح' });
       const imgs = await MotorcycleModel.reorderImages(req.params.id, order);
+      invalidate(KEYS.STATS);
+      invalidate(KEYS.FEATURED);
       res.json({ success: true, data: imgs });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -211,13 +244,13 @@ async function attachUploadedImages(req, motorcycleId) {
   if (req.files && req.files.length) {
     const existingImages = await MotorcycleModel.getImages(motorcycleId);
     const existing = existingImages.length;
-    for (let i = 0; i < req.files.length; i++) {
-      const f = req.files[i];
+    const uploadPromises = req.files.map(async (f, i) => {
       const ext = path.extname(f.originalname).toLowerCase() || '.jpg';
       const filename = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`;
       const url = await uploadImage(filename, f.buffer, f.mimetype);
-      await MotorcycleModel.addImage(motorcycleId, url, existing + i);
-    }
+      return MotorcycleModel.addImage(motorcycleId, url, existing + i);
+    });
+    await Promise.all(uploadPromises);
   }
 }
 

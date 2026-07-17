@@ -1,4 +1,4 @@
-// نموذج المدير — التحقق من بيانات الدخول وإدارة الحساب
+// نموذج المدير — التحقق من بيانات الدخول وإدارة الحساب (غير متزامن Asynchronous)
 const bcrypt = require('bcryptjs');
 const db = require('../database/db');
 
@@ -19,12 +19,12 @@ const AdminModel = {
     return res.rows[0] || null;
   },
 
-  verifyPassword(plain, hash) {
-    return bcrypt.compareSync(plain, hash);
+  async verifyPassword(plain, hash) {
+    return bcrypt.compare(plain, hash);
   },
 
   async create(email, password, name, phone, role) {
-    const hash = bcrypt.hashSync(password, 10);
+    const hash = await bcrypt.hash(password, 10);
     const res = await db.query(
       'INSERT INTO admins (email, password_hash, name, phone, role) VALUES ($1, $2, $3, $4, $5) RETURNING id',
       [String(email).toLowerCase().trim(), hash, name || null, phone || null, role || 'editor']
@@ -54,7 +54,8 @@ const AdminModel = {
     }
     if (data.password) {
       fields.push(`password_hash = $${idx++}`);
-      params.push(bcrypt.hashSync(data.password, 10));
+      const hash = await bcrypt.hash(data.password, 10);
+      params.push(hash);
     }
     if (!fields.length) return this.findById(id);
     params.push(id);
@@ -73,10 +74,11 @@ const AdminModel = {
   },
 
   async changePassword(id, newPassword) {
-    const hash = bcrypt.hashSync(newPassword, 10);
+    const hash = await bcrypt.hash(newPassword, 10);
     await db.query('UPDATE admins SET password_hash = $1 WHERE id = $2', [hash, id]);
     return true;
   }
 };
 
 module.exports = AdminModel;
+

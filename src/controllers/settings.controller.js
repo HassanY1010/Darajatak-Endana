@@ -3,12 +3,20 @@ const SettingsModel = require('../models/settings.model');
 const crypto = require('crypto');
 const path = require('path');
 const { uploadImage, deleteImage } = require('../utils/supabase');
+const { cache, KEYS, invalidate } = require('../utils/cache');
 
 const SettingsController = {
   // عام: للزوار (اسم الموقع، رقم واتساب، الشعار...)
   async getPublic(req, res) {
     try {
-      res.json({ success: true, data: await SettingsModel.getAll() });
+      const cached = cache.get(KEYS.SETTINGS);
+      if (cached) {
+        return res.json({ success: true, data: cached });
+      }
+      
+      const data = await SettingsModel.getAll();
+      cache.set(KEYS.SETTINGS, data);
+      res.json({ success: true, data });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
     }
@@ -18,6 +26,7 @@ const SettingsController = {
   async update(req, res) {
     try {
       const data = await SettingsModel.setMany(req.body || {});
+      invalidate(KEYS.SETTINGS); // إبطال الكاش
       res.json({ success: true, message: 'تم حفظ الإعدادات', data });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -41,6 +50,7 @@ const SettingsController = {
       const url = await uploadImage(filename, req.file.buffer, req.file.mimetype);
 
       await SettingsModel.set('logo_url', url);
+      invalidate(KEYS.SETTINGS); // إبطال الكاش
       res.json({ success: true, message: 'تم رفع الشعار', data: { logo_url: url } });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -49,3 +59,4 @@ const SettingsController = {
 };
 
 module.exports = SettingsController;
+

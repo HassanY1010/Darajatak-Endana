@@ -11,18 +11,45 @@ if (config.supabase.url && config.supabase.key) {
   });
 }
 
+const sharp = require('sharp');
+
 /**
- * رفع صورة إلى حوض التخزين (Bucket) في Supabase
+ * رفع صورة إلى حوض التخزين (Bucket) في Supabase مع تحسينها وضغطها
  */
 async function uploadImage(filename, buffer, mimetype) {
   if (!supabase) {
     throw new Error('Supabase client is not configured. Please set SUPABASE_URL and SUPABASE_KEY.');
   }
 
+  let finalBuffer = buffer;
+  let finalMime = mimetype;
+  let finalFilename = filename;
+
+  // تحسين الصور فقط وتجنب ملفات GIF المتحركة
+  if (mimetype && mimetype.startsWith('image/') && mimetype !== 'image/gif') {
+    try {
+      finalBuffer = await sharp(buffer)
+        .resize({ width: 1200, withoutEnlargement: true }) // عرض أقصى 1200 بكسل مع الحفاظ على التناسب
+        .webp({ quality: 80 }) // التحويل لصيغة webp وضغطها بجودة 80%
+        .toBuffer();
+      
+      finalMime = 'image/webp';
+      
+      const lastDot = filename.lastIndexOf('.');
+      if (lastDot !== -1) {
+        finalFilename = filename.substring(0, lastDot) + '.webp';
+      } else {
+        finalFilename = filename + '.webp';
+      }
+    } catch (err) {
+      console.error('⚠️ فشلت عملية تحسين الصورة، سيتم رفع الأصلية:', err.message);
+    }
+  }
+
   const { data, error } = await supabase.storage
     .from(config.supabase.bucket)
-    .upload(filename, buffer, {
-      contentType: mimetype,
+    .upload(finalFilename, finalBuffer, {
+      contentType: finalMime,
       upsert: true
     });
 
@@ -32,7 +59,7 @@ async function uploadImage(filename, buffer, mimetype) {
 
   const { data: { publicUrl } } = supabase.storage
     .from(config.supabase.bucket)
-    .getPublicUrl(filename);
+    .getPublicUrl(finalFilename);
 
   return publicUrl;
 }
