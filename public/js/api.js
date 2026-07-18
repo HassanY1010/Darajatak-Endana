@@ -63,25 +63,24 @@ const Utils = {
   },
   img(url) {
     if (!url) return 'https://via.placeholder.com/600x400/141417/d4af37?text=%F0%9F%8F%8D%EF%B8%8F';
-    // إرجاع الرابط المباشر من Supabase CDN (أسرع)
-    // البروكسي يُستخدم فقط كـ fallback تلقائي عبر onerror في HTML
+    // البروكسي أولاً دائماً — بعض الشبكات تحجب Supabase CDN كلياً
+    // الأداء مضمون عبر كاش RAM 24 ساعة في الخادم + كاش 30 يوم في المتصفح
+    if (url.includes('supabase.co')) {
+      return '/api/img/proxy?url=' + encodeURIComponent(url);
+    }
     return url;
   },
 
-  // بناء رابط proxy للاستخدام في onerror
+  // رابط البروكسي المباشر (للاستخدام الداخلي)
   imgProxy(url) {
     if (!url || !url.includes('supabase.co')) return url;
     return '/api/img/proxy?url=' + encodeURIComponent(url);
   },
 
-  // بناء وسم img كامل مع fallback تلقائي للبروكسي
+  // بناء وسم img مع proxy
   imgTag(url, alt, cssClass, extraAttrs) {
-    const direct = this.img(url);
-    const proxy = this.imgProxy(url);
-    const fallback = proxy !== direct
-      ? `onerror="this.onerror=null;this.src='${proxy}'"`
-      : `onerror="this.onerror=null;"`;
-    return `<img src="${direct}" alt="${alt || ''}" ${cssClass ? `class="${cssClass}"` : ''} ${extraAttrs || ''} loading="lazy" ${fallback}>`;
+    const src = this.img(url);
+    return `<img src="${src}" alt="${alt || ''}" ${cssClass ? `class="${cssClass}"` : ''} ${extraAttrs || ''} loading="lazy">`;
   },
 
   // بناء رابط واتساب مع رسالة ديناميكية

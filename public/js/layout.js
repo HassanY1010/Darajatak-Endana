@@ -16,17 +16,13 @@ initTheme();
 
 async function loadSite() {
   try {
-    // مسح الكاش القديم إذا كان يحتوي على logo_url بدون proxy fallback
-    const cached = sessionStorage.getItem('site_settings');
-    if (cached) {
-      SITE = JSON.parse(cached);
-    } else {
-      const res = await API.settings();
-      SITE = res.data || {};
-      sessionStorage.setItem('site_settings', JSON.stringify(SITE));
-    }
+    // نمسح الكاش القديم دائماً ونجلب الإعدادات من الخادم
+    // (الإعدادات خفيفة جداً ولا تستحق المشكلة التي يسببها الكاش القديم)
+    sessionStorage.removeItem('site_settings');
+    const res = await API.settings();
+    SITE = res.data || {};
   } catch {
-    SITE = { site_name: 'دراجتك علينا', whatsapp_number: '967000000000' };
+    SITE = { site_name: 'دراجتك عندنا', whatsapp_number: '967000000000' };
   }
   renderHeader();
   renderFooter();
