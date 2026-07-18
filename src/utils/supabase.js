@@ -25,21 +25,21 @@ async function uploadImage(filename, buffer, mimetype) {
   let finalMime = mimetype;
   let finalFilename = filename;
 
-  // تحسين الصور فقط وتجنب ملفات GIF المتحركة
+  // تحسين الصور وتجنب ملفات GIF المتحركة لضمان التوافق 100% مع كافة الأجهزة
   if (mimetype && mimetype.startsWith('image/') && mimetype !== 'image/gif') {
     try {
       finalBuffer = await sharp(buffer)
         .resize({ width: 1200, withoutEnlargement: true }) // عرض أقصى 1200 بكسل مع الحفاظ على التناسب
-        .webp({ quality: 80 }) // التحويل لصيغة webp وضغطها بجودة 80%
+        .jpeg({ quality: 80, progressive: true }) // التحويل لصيغة progressive JPEG المضغوطة والمتوافقة بالكامل
         .toBuffer();
       
-      finalMime = 'image/webp';
+      finalMime = 'image/jpeg';
       
       const lastDot = filename.lastIndexOf('.');
       if (lastDot !== -1) {
-        finalFilename = filename.substring(0, lastDot) + '.webp';
+        finalFilename = filename.substring(0, lastDot) + '.jpg';
       } else {
-        finalFilename = filename + '.webp';
+        finalFilename = filename + '.jpg';
       }
     } catch (err) {
       console.error('⚠️ فشلت عملية تحسين الصورة، سيتم رفع الأصلية:', err.message);
