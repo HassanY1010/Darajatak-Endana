@@ -16,7 +16,7 @@
   }
 
   function render(m) {
-    const images = (m.images && m.images.length) ? m.images.map(i => i.image_url) : [Utils.img(m.main_image)];
+    const images = (m.images && m.images.length) ? m.images.map(i => i.image_url) : [m.main_image];
     let mainImg = m.main_image && images.includes(m.main_image) ? m.main_image : images[0];
     const phone = m.admin_phone || (window.SITE ? window.SITE.whatsapp_number : '');
     const waLink = Utils.whatsappLink(phone, m);
@@ -37,10 +37,10 @@
 
       <div class="detail-body">
       <div class="detail-images">
-        <img id="main-image" src="${Utils.img(mainImg)}" alt="${m.title}" class="detail-main-img" loading="lazy">
+        <img id="main-image" src="${Utils.img(mainImg)}" alt="${m.title}" class="detail-main-img" loading="lazy" onerror="this.onerror=null;this.src='/images/no-image.jpg'">
         ${images.length > 1 ? `
         <div class="detail-thumbs">
-          ${images.map((url, i) => '<img src="' + url + '" class="' + (url === mainImg ? 'active' : '') + '" data-url="' + url + '" alt="صورة ' + (i+1) + '" loading="lazy">').join('')}
+          ${images.map((url, i) => '<img src="' + Utils.img(url) + '" class="' + (url === mainImg ? 'active' : '') + '" data-url="' + url + '" alt="صورة ' + (i+1) + '" loading="lazy" onerror="this.onerror=null;this.src=\'/images/no-image.jpg\'">' ).join('')}
         </div>
         <div style="display:flex;gap:8px;">
           <button id="prev-img" class="btn-primary" style="height:40px;padding:0 16px;font-size:.85rem;flex:1;border-radius:10px;"><i class="fas fa-chevron-right"></i> السابق</button>
@@ -82,7 +82,7 @@
       const mainEl = document.getElementById('main-image');
       function setIdx(i) {
         idx = (i + images.length) % images.length;
-        if (mainEl) mainEl.src = images[idx];
+        if (mainEl) mainEl.src = Utils.img(images[idx]);
         document.querySelectorAll('.detail-thumbs img').forEach(t => t.classList.toggle('active', t.dataset.url === images[idx]));
       }
       var prevBtn = document.getElementById('prev-img');

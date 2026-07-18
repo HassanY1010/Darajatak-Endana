@@ -9,7 +9,7 @@ function renderCard(m) {
   return `
     <div class="moto-card" data-id="${m.id}">
       <a href="/motorcycle.html?id=${m.id}" class="moto-card-img">
-        <img src="${img}" alt="${m.title}" loading="lazy">
+        <img src="${img}" alt="${m.title}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/600x400/141417/d4af37?text=%F0%9F%8F%8D%EF%B8%8F'">
         <span class="moto-card-status">
           ${isSold
             ? '<span class="badge-sold">تم البيع</span>'

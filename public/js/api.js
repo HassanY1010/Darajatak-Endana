@@ -63,6 +63,10 @@ const Utils = {
   },
   img(url) {
     if (!url) return 'https://via.placeholder.com/600x400/141417/d4af37?text=%F0%9F%8F%8D%EF%B8%8F';
+    // توجيه صور Supabase عبر Image Proxy لضمان عرضها لجميع المستخدمين والأجهزة
+    if (url.includes('supabase.co')) {
+      return '/api/img/proxy?url=' + encodeURIComponent(url);
+    }
     return url;
   },
   // بناء رابط واتساب مع رسالة ديناميكية
