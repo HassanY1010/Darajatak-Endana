@@ -61,7 +61,7 @@ function renderHeader() {
       <div class="header-inner">
         <div class="header-row">
           <a href="/" class="header-logo">
-            ${SITE.logo_url ? '<img src="' + SITE.logo_url + '" alt="' + name + '" class="header-logo-img"><span class="header-logo-text">' + siteNameHTML() + '</span>' : '<span class="header-logo-text">' + siteNameHTML() + '</span>'}
+            ${SITE.logo_url ? '<img src="' + Utils.img(SITE.logo_url) + '" alt="' + name + '" class="header-logo-img" onerror="this.style.display=\'none\'"><span class="header-logo-text">' + siteNameHTML() + '</span>' : '<span class="header-logo-text">' + siteNameHTML() + '</span>'}
           </a>
           <div class="header-actions">
             <button id="theme-toggle" onclick="toggleTheme()" class="touch-btn header-icon-btn" title="الوضع الفاتح/الداكن" aria-label="تبديل الوضع">
