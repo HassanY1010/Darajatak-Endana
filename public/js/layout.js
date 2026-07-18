@@ -16,6 +16,7 @@ initTheme();
 
 async function loadSite() {
   try {
+    // مسح الكاش القديم إذا كان يحتوي على logo_url بدون proxy fallback
     const cached = sessionStorage.getItem('site_settings');
     if (cached) {
       SITE = JSON.parse(cached);
@@ -61,7 +62,7 @@ function renderHeader() {
       <div class="header-inner">
         <div class="header-row">
           <a href="/" class="header-logo">
-            ${SITE.logo_url ? '<img src="' + Utils.img(SITE.logo_url) + '" alt="' + name + '" class="header-logo-img" onerror="this.style.display=\'none\'"><span class="header-logo-text">' + siteNameHTML() + '</span>' : '<span class="header-logo-text">' + siteNameHTML() + '</span>'}
+            ${SITE.logo_url ? Utils.imgTag(SITE.logo_url, name, 'header-logo-img', '') + '<span class="header-logo-text">' + siteNameHTML() + '</span>' : '<span class="header-logo-text">' + siteNameHTML() + '</span>'}
           </a>
           <div class="header-actions">
             <button id="theme-toggle" onclick="toggleTheme()" class="touch-btn header-icon-btn" title="الوضع الفاتح/الداكن" aria-label="تبديل الوضع">

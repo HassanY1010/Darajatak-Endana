@@ -63,12 +63,27 @@ const Utils = {
   },
   img(url) {
     if (!url) return 'https://via.placeholder.com/600x400/141417/d4af37?text=%F0%9F%8F%8D%EF%B8%8F';
-    // توجيه صور Supabase عبر Image Proxy لضمان عرضها لجميع المستخدمين والأجهزة
-    if (url.includes('supabase.co')) {
-      return '/api/img/proxy?url=' + encodeURIComponent(url);
-    }
+    // إرجاع الرابط المباشر من Supabase CDN (أسرع)
+    // البروكسي يُستخدم فقط كـ fallback تلقائي عبر onerror في HTML
     return url;
   },
+
+  // بناء رابط proxy للاستخدام في onerror
+  imgProxy(url) {
+    if (!url || !url.includes('supabase.co')) return url;
+    return '/api/img/proxy?url=' + encodeURIComponent(url);
+  },
+
+  // بناء وسم img كامل مع fallback تلقائي للبروكسي
+  imgTag(url, alt, cssClass, extraAttrs) {
+    const direct = this.img(url);
+    const proxy = this.imgProxy(url);
+    const fallback = proxy !== direct
+      ? `onerror="this.onerror=null;this.src='${proxy}'"`
+      : `onerror="this.onerror=null;"`;
+    return `<img src="${direct}" alt="${alt || ''}" ${cssClass ? `class="${cssClass}"` : ''} ${extraAttrs || ''} loading="lazy" ${fallback}>`;
+  },
+
   // بناء رابط واتساب مع رسالة ديناميكية
   whatsappLink(phone, moto) {
     const clean = String(phone || '').replace(/[^0-9]/g, '');

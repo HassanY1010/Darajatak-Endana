@@ -37,10 +37,10 @@
 
       <div class="detail-body">
       <div class="detail-images">
-        <img id="main-image" src="${Utils.img(mainImg)}" alt="${m.title}" class="detail-main-img" loading="lazy" onerror="this.onerror=null;this.src='/images/no-image.jpg'">
+        ${Utils.imgTag(mainImg, m.title, 'detail-main-img', 'id="main-image"')}
         ${images.length > 1 ? `
         <div class="detail-thumbs">
-          ${images.map((url, i) => '<img src="' + Utils.img(url) + '" class="' + (url === mainImg ? 'active' : '') + '" data-url="' + url + '" alt="صورة ' + (i+1) + '" loading="lazy" onerror="this.onerror=null;this.src=\'/images/no-image.jpg\'">' ).join('')}
+          ${images.map((url, i) => Utils.imgTag(url, 'صورة ' + (i+1), (url === mainImg ? 'active' : ''), 'data-url="' + url + '"')).join('')}
         </div>
         <div style="display:flex;gap:8px;">
           <button id="prev-img" class="btn-primary" style="height:40px;padding:0 16px;font-size:.85rem;flex:1;border-radius:10px;"><i class="fas fa-chevron-right"></i> السابق</button>
