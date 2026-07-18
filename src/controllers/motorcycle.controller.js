@@ -19,6 +19,7 @@ const MotorcycleController = {
         status: req.query.status,
         minPrice: req.query.minPrice,
         maxPrice: req.query.maxPrice,
+        price: req.query.price,
         sort: req.query.sort,
         page: req.query.page || 1,
         limit: req.query.limit || 24,

@@ -10,7 +10,7 @@ const MotorcycleModel = {
   /**
    * جلب قائمة الدراجات مع فلترة/بحث/ترتيب/ترقيم صفحات
    */
-  async list({ search, brand, city, region, status, minPrice, maxPrice, sort, page = 1, limit = 24, includeExpired = false } = {}) {
+  async list({ search, brand, city, region, status, minPrice, maxPrice, price, sort, page = 1, limit = 24, includeExpired = false } = {}) {
     const where = [];
     const params = [];
     let idx = 1;
@@ -42,6 +42,11 @@ const MotorcycleModel = {
     if (status) {
       where.push(`status = $${idx}`);
       params.push(status);
+      idx++;
+    }
+    if (price != null && price !== '') {
+      where.push(`price = $${idx}`);
+      params.push(Number(price));
       idx++;
     }
     if (minPrice != null && minPrice !== '') {

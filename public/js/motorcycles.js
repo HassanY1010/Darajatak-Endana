@@ -22,7 +22,7 @@
     if (f.search) p.set('search', f.search);
     if (f.city) p.set('city', f.city);
     if (f.region) p.set('region', f.region);
-    if (f.price) p.set('maxPrice', f.price);
+    if (f.price) p.set('price', f.price);
     if (f.brand) p.set('brand', f.brand);
     if (f.sort && f.sort !== 'newest') p.set('sort', f.sort);
     p.set('page', state.page);
