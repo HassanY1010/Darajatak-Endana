@@ -36,14 +36,18 @@ function renderSkeleton() {
     ? Utils.img(window.SITE.logo_url) 
     : 'https://tbogujraszjmiykxinfd.supabase.co/storage/v1/object/public/motorcycles/logo-1782041024871-73cb3a6f.jpg';
   
-  return `
-    <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; gap: 16px; width: 100%;">
-      <div style="position: relative; width: 80px; height: 80px; margin: 0 auto;">
-        <img src="${logo}" alt="جاري التحميل" style="width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; animation: pulse-logo 1.5s infinite ease-in-out;">
-        <div style="position: absolute; top: -6px; left: -6px; width: 92px; height: 92px; border: 3px solid transparent; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+  return Array.from({ length: 8 }, () => `
+    <div class="skeleton-card">
+      <div class="skeleton-img" style="display: flex; align-items: center; justify-content: center; background: var(--bg-elevated); aspect-ratio: 4/3; position: relative; overflow: hidden;">
+        <img src="${logo}" alt="تحميل" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; opacity: 0.25; animation: pulse-logo 1.5s infinite ease-in-out;">
       </div>
-      <span style="color: var(--text-muted); font-weight: 600; font-size: 0.95rem;">جاري تحميل الدراجات...</span>
-    </div>`;
+      <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div class="skeleton-line" style="width: 80%; height: 16px; margin: 0;"></div>
+        <div class="skeleton-line" style="width: 40%; height: 20px; margin: 0;"></div>
+        <div class="skeleton-line" style="width: 50%; height: 14px; margin: 0;"></div>
+        <div class="skeleton-line" style="width: 100%; height: 38px; border-radius: 12px; margin: 4px 0 0 0;"></div>
+      </div>
+    </div>`).join('');
 }
 
 function toggleFav(id, btn) {
