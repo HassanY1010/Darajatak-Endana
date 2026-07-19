@@ -71,6 +71,40 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// ===== Dynamic Meta Tags for motorcycle details (WhatsApp/Social share previews) =====
+app.get('/motorcycle.html', async (req, res, next) => {
+  const { id } = req.query;
+  if (!id) return next();
+  try {
+    const moto = await MotorcycleModel.findById(Number(id));
+    if (!moto) return next();
+
+    const filePath = path.join(config.paths.public, 'motorcycle.html');
+    let html = fs.readFileSync(filePath, 'utf8');
+
+    const title = `${moto.title} | ${moto.city || 'دراجتك عندنا'}`;
+    const description = `${moto.brand || ''} ${moto.model || ''} - السعر: ${moto.price.toLocaleString('ar-SA')} ريال سعودي - ممشى: ${moto.mileage ? moto.mileage.toLocaleString('ar-SA') + ' كم' : ''}`;
+    
+    let imageUrl = moto.main_image || '/images/og-default.jpg';
+    if (imageUrl.startsWith('/uploads') || imageUrl.startsWith('uploads')) {
+      const host = req.get('host');
+      const protocol = req.protocol;
+      imageUrl = `${protocol}://${host}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+    }
+
+    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${title}</title>`);
+    html = html.replace(/<meta name="description" content="[^"]*">/i, `<meta name="description" content="${description}">`);
+    html = html.replace(/<meta property="og:title" content="[^"]*">/i, `<meta property="og:title" content="${title}">`);
+    html = html.replace(/<meta property="og:description" content="[^"]*">/i, `<meta property="og:description" content="${description}">`);
+    html = html.replace(/<meta property="og:image" content="[^"]*">/i, `<meta property="og:image" content="${imageUrl}">`);
+
+    res.send(html);
+  } catch (e) {
+    console.error('Error serving dynamic meta tags:', e.message);
+    next();
+  }
+});
+
 // ===== الملفات الثابتة =====
 app.use('/uploads', express.static(config.upload.dir, { maxAge: '7d' }));
 app.use(express.static(config.paths.public));
