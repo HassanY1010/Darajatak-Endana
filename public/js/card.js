@@ -32,11 +32,15 @@ function renderCard(m) {
 }
 
 function renderSkeleton() {
-  return Array.from({ length: 6 }, () => `
+  return Array.from({ length: 8 }, () => `
     <div class="skeleton-card">
       <div class="skeleton-img"></div>
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line short"></div>
+      <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div class="skeleton-line" style="width: 80%; height: 16px;"></div>
+        <div class="skeleton-line" style="width: 40%; height: 20px;"></div>
+        <div class="skeleton-line" style="width: 50%; height: 14px;"></div>
+        <div class="skeleton-line" style="width: 100%; height: 38px; border-radius: 12px; margin-top: 4px;"></div>
+      </div>
     </div>`).join('');
 }
 
