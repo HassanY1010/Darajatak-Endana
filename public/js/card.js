@@ -32,16 +32,18 @@ function renderCard(m) {
 }
 
 function renderSkeleton() {
-  return Array.from({ length: 8 }, () => `
-    <div class="skeleton-card">
-      <div class="skeleton-img"></div>
-      <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
-        <div class="skeleton-line" style="width: 80%; height: 16px;"></div>
-        <div class="skeleton-line" style="width: 40%; height: 20px;"></div>
-        <div class="skeleton-line" style="width: 50%; height: 14px;"></div>
-        <div class="skeleton-line" style="width: 100%; height: 38px; border-radius: 12px; margin-top: 4px;"></div>
+  const logo = (window.SITE && window.SITE.logo_url) 
+    ? Utils.img(window.SITE.logo_url) 
+    : 'https://tbogujraszjmiykxinfd.supabase.co/storage/v1/object/public/motorcycles/logo-1782041024871-73cb3a6f.jpg';
+  
+  return `
+    <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; gap: 16px; width: 100%;">
+      <div style="position: relative; width: 80px; height: 80px; margin: 0 auto;">
+        <img src="${logo}" alt="جاري التحميل" style="width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; animation: pulse-logo 1.5s infinite ease-in-out;">
+        <div style="position: absolute; top: -6px; left: -6px; width: 92px; height: 92px; border: 3px solid transparent; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
       </div>
-    </div>`).join('');
+      <span style="color: var(--text-muted); font-weight: 600; font-size: 0.95rem;">جاري تحميل الدراجات...</span>
+    </div>`;
 }
 
 function toggleFav(id, btn) {

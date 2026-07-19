@@ -632,6 +632,10 @@ img, video, canvas, svg {
   margin: 0 auto;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse-logo {
+  0%, 100% { transform: scale(0.92); opacity: 0.8; }
+  50% { transform: scale(1.02); opacity: 1; }
+}
 
 .skeleton-card {
   background: var(--bg-card);
