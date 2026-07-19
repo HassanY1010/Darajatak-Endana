@@ -638,11 +638,15 @@ img, video, canvas, svg {
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--border-light);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 .skeleton-img, .skeleton-line {
-  background: var(--bg-elevated);
+  background: #E5E7EB;
   position: relative;
   overflow: hidden;
+}
+html.dark .skeleton-img, html.dark .skeleton-line {
+  background: #2D3139;
 }
 .skeleton-img::after, .skeleton-line::after {
   content: "";
@@ -655,18 +659,18 @@ img, video, canvas, svg {
   background-image: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.3) 20%,
-    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0.6) 30%,
+    rgba(255, 255, 255, 0.9) 60%,
     rgba(255, 255, 255, 0) 100%
   );
-  animation: shimmer 1.6s infinite;
+  animation: shimmer 1.4s infinite ease-in-out;
 }
 html.dark .skeleton-img::after, html.dark .skeleton-line::after {
   background-image: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.05) 20%,
-    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0.15) 30%,
+    rgba(255, 255, 255, 0.3) 60%,
     rgba(255, 255, 255, 0) 100%
   );
 }
