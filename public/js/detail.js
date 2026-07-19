@@ -99,6 +99,33 @@
       document.getElementById('detail').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>معرّف الدراجة مفقود</h3></div>';
       return;
     }
+    
+    const logo = (window.SITE && window.SITE.logo_url) 
+      ? Utils.img(window.SITE.logo_url) 
+      : 'https://tbogujraszjmiykxinfd.supabase.co/storage/v1/object/public/motorcycles/logo-1782041024871-73cb3a6f.jpg';
+      
+    document.getElementById('detail').innerHTML = `
+      <div class="breadcrumb" style="opacity: 0.5; margin-bottom: 24px;">
+        <div class="skeleton-line" style="width: 150px; height: 14px; margin: 0;"></div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-images">
+          <div class="skeleton-card" style="aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; background: var(--bg-elevated); border-radius: 16px; border: 1px solid var(--border-light); width: 100%;">
+            <img src="${logo}" alt="تحميل" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; opacity: 0.25; animation: pulse-logo 1.5s infinite ease-in-out;">
+          </div>
+        </div>
+        <div class="detail-info" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="skeleton-line" style="width: 120px; height: 24px; margin: 0;"></div>
+          <div class="skeleton-line" style="width: 80%; height: 32px; margin: 0;"></div>
+          <div class="skeleton-line" style="width: 150px; height: 28px; margin: 0;"></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
+            <div class="skeleton-line" style="width: 100%; height: 16px; margin: 0;"></div>
+            <div class="skeleton-line" style="width: 90%; height: 16px; margin: 0;"></div>
+          </div>
+          <div class="skeleton-line" style="width: 100%; height: 48px; border-radius: 12px; margin: 24px 0 0 0;"></div>
+        </div>
+      </div>`;
+
     try {
       const { data } = await API.motorcycle(id);
       render(data);
