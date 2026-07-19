@@ -122,7 +122,11 @@
     html += '<button data-page="' + next + '" ' + (state.page >= pages ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i></button>';
     pEl.innerHTML = html;
     pEl.querySelectorAll('button[data-page]:not(:disabled)').forEach(b => {
-      b.addEventListener('click', () => { state.page = Number(b.dataset.page); load(); });
+      b.addEventListener('click', () => { 
+        state.page = Number(b.dataset.page); 
+        load(); 
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     });
   }
 
