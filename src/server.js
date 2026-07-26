@@ -2,6 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
+const compression = require('compression');
 const helmet = require('helmet');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -60,6 +61,9 @@ const app = express();
 // إخبار Express بأنه يعمل خلف Reverse Proxy (Render/Nginx)
 // ضروري لكي تعمل مكتبة express-rate-limit بشكل صحيح
 app.set('trust proxy', 1);
+
+// ===== ضغط الاستجابات =====
+app.use(compression());
 
 // ===== الأمان والوسائط =====
 app.use(helmet({

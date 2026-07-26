@@ -63,18 +63,12 @@ const Utils = {
   },
   img(url) {
     if (!url) return 'https://via.placeholder.com/600x400/141417/d4af37?text=%F0%9F%8F%8D%EF%B8%8F';
-    // البروكسي أولاً دائماً — بعض الشبكات تحجب Supabase CDN كلياً
-    // الأداء مضمون عبر كاش RAM 24 ساعة في الخادم + كاش 30 يوم في المتصفح
-    if (url.includes('supabase.co')) {
-      return '/api/img/proxy?url=' + encodeURIComponent(url);
-    }
     return url;
   },
 
-  // رابط البروكسي المباشر (للاستخدام الداخلي)
+  // رابط الصورة (مباشر من المصدر)
   imgProxy(url) {
-    if (!url || !url.includes('supabase.co')) return url;
-    return '/api/img/proxy?url=' + encodeURIComponent(url);
+    return url || '';
   },
 
   // بناء وسم img مع proxy

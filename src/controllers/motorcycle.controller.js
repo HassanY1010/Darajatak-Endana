@@ -84,7 +84,15 @@ const MotorcycleController = {
 
   async filters(req, res) {
     try {
-      res.json({ success: true, data: await MotorcycleModel.distinctValues() });
+      const cached = cache.get(KEYS.FILTERS);
+      if (cached) {
+        res.setHeader('Cache-Control', 'public, max-age=1800');
+        return res.json({ success: true, data: cached });
+      }
+      const data = await MotorcycleModel.distinctValues();
+      cache.set(KEYS.FILTERS, data);
+      res.setHeader('Cache-Control', 'public, max-age=1800');
+      res.json({ success: true, data });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
     }
@@ -98,6 +106,7 @@ const MotorcycleController = {
       await attachUploadedImages(req, moto.id);
       invalidate(KEYS.STATS);
       invalidate(KEYS.FEATURED);
+      invalidate(KEYS.FILTERS);
       res.status(201).json({ success: true, message: 'تمت إضافة الدراجة', data: await MotorcycleModel.findById(moto.id) });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -111,6 +120,7 @@ const MotorcycleController = {
       await attachUploadedImages(req, moto.id);
       invalidate(KEYS.STATS);
       invalidate(KEYS.FEATURED);
+      invalidate(KEYS.FILTERS);
       res.json({ success: true, message: 'تم تحديث الدراجة', data: await MotorcycleModel.findById(moto.id) });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -123,6 +133,7 @@ const MotorcycleController = {
       if (!moto) return res.status(404).json({ success: false, message: 'الدراجة غير موجودة' });
       invalidate(KEYS.STATS);
       invalidate(KEYS.FEATURED);
+      invalidate(KEYS.FILTERS);
       res.json({ success: true, message: 'تم تغيير الحالة', data: moto });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
@@ -153,6 +164,7 @@ const MotorcycleController = {
       }
       invalidate(KEYS.STATS);
       invalidate(KEYS.FEATURED);
+      invalidate(KEYS.FILTERS);
       res.json({ success: true, message: 'تم حذف الدراجة' });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });

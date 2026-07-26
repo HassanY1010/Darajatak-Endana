@@ -9,7 +9,8 @@ module.exports = {
   KEYS: {
     SETTINGS: 'site_settings',
     STATS: 'site_stats',
-    FEATURED: 'featured_motorcycles'
+    FEATURED: 'featured_motorcycles',
+    FILTERS: 'site_filters'
   },
   
   // دالة لمسح كاش معين أو الكاش بالكامل
