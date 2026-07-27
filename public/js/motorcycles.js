@@ -10,7 +10,8 @@
       search:   ($('q-search') && $('q-search').value.trim()) || '',
       city:     ($('q-city') && $('q-city').value.trim()) || '',
       region:   ($('q-region') && $('q-region').value) || '',
-      price:    ($('q-price') && $('q-price').value.trim()) || '',
+      minPrice: ($('q-min-price') && $('q-min-price').value.trim()) || '',
+      maxPrice: ($('q-max-price') && $('q-max-price').value.trim()) || '',
       brand:    ($('q-brand') && $('q-brand').value.trim()) || '',
       sort:     ($('sort-select') && $('sort-select').value) || 'newest'
     };
@@ -22,7 +23,8 @@
     if (f.search) p.set('search', f.search);
     if (f.city) p.set('city', f.city);
     if (f.region) p.set('region', f.region);
-    if (f.price) p.set('price', f.price);
+    if (f.minPrice) p.set('minPrice', f.minPrice);
+    if (f.maxPrice) p.set('maxPrice', f.maxPrice);
     if (f.brand) p.set('brand', f.brand);
     if (f.sort && f.sort !== 'newest') p.set('sort', f.sort);
     p.set('page', state.page);
@@ -36,7 +38,8 @@
     if (f.search) p.set('search', f.search);
     if (f.city) p.set('city', f.city);
     if (f.region) p.set('region', f.region);
-    if (f.price) p.set('price', f.price);
+    if (f.minPrice) p.set('minPrice', f.minPrice);
+    if (f.maxPrice) p.set('maxPrice', f.maxPrice);
     if (f.brand) p.set('brand', f.brand);
     if (f.sort && f.sort !== 'newest') p.set('sort', f.sort);
     if (state.page > 1) p.set('page', state.page);
@@ -50,7 +53,13 @@
     if (f.search) chips.push({ key: 'search', label: '"' + f.search + '"' });
     if (f.city) chips.push({ key: 'city', label: 'المدينة: ' + f.city });
     if (f.region) chips.push({ key: 'region', label: 'المنطقة: ' + f.region });
-    if (f.price) chips.push({ key: 'price', label: 'السعر حتى: ' + f.price });
+    if (f.minPrice && f.maxPrice) {
+      chips.push({ key: 'price-both', label: 'السعر: ' + f.minPrice + ' إلى ' + f.maxPrice });
+    } else if (f.minPrice) {
+      chips.push({ key: 'minPrice', label: 'السعر من: ' + f.minPrice });
+    } else if (f.maxPrice) {
+      chips.push({ key: 'maxPrice', label: 'السعر إلى: ' + f.maxPrice });
+    }
     if (f.brand) chips.push({ key: 'brand', label: 'النوع: ' + f.brand });
     const container = $('active-chips');
     if (!container) return;
@@ -65,7 +74,12 @@
         if (key === 'search' && $('q-search')) $('q-search').value = '';
         if (key === 'city' && $('q-city')) $('q-city').value = '';
         if (key === 'region' && $('q-region')) $('q-region').value = '';
-        if (key === 'price' && $('q-price')) $('q-price').value = '';
+        if (key === 'price-both') {
+          if ($('q-min-price')) $('q-min-price').value = '';
+          if ($('q-max-price')) $('q-max-price').value = '';
+        }
+        if (key === 'minPrice' && $('q-min-price')) $('q-min-price').value = '';
+        if (key === 'maxPrice' && $('q-max-price')) $('q-max-price').value = '';
         if (key === 'brand' && $('q-brand')) $('q-brand').value = '';
         state.page = 1; load();
       });
@@ -137,7 +151,10 @@
     if (params.get('search') && $('q-search')) $('q-search').value = params.get('search');
     if (params.get('city') && $('q-city')) $('q-city').value = params.get('city');
     if (params.get('region') && $('q-region')) $('q-region').value = params.get('region');
-    if (params.get('price') && $('q-price')) $('q-price').value = params.get('price');
+    const minP = params.get('minPrice') || params.get('min_price');
+    const maxP = params.get('maxPrice') || params.get('max_price') || params.get('price');
+    if (minP && $('q-min-price')) $('q-min-price').value = minP;
+    if (maxP && $('q-max-price')) $('q-max-price').value = maxP;
     if (params.get('brand') && $('q-brand')) $('q-brand').value = params.get('brand');
     if (params.get('sort') && $('sort-select')) $('sort-select').value = params.get('sort');
     if (params.get('page')) state.page = Number(params.get('page'));
@@ -149,7 +166,7 @@
       window._sd = setTimeout(() => { state.page = 1; load(); }, 350);
     };
     
-    ['q-search', 'q-city', 'q-price', 'q-brand'].forEach(id => {
+    ['q-search', 'q-city', 'q-min-price', 'q-max-price', 'q-brand'].forEach(id => {
       const el = $(id);
       if (el) {
         el.addEventListener('input', debounceLoad);
