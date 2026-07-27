@@ -485,10 +485,12 @@ img, video, canvas, svg {
 }
 .detail-main-img {
   width: 100%;
-  aspect-ratio: 16/10;
-  object-fit: cover;
+  max-height: 550px;
+  object-fit: contain;
   border-radius: 16px;
-  background: var(--bg-elevated);
+  background: #0d0f12;
+  display: block;
+  margin: 0 auto;
 }
 .detail-thumbs {
   display: flex;
@@ -608,7 +610,7 @@ img, video, canvas, svg {
     gap: 32px;
     align-items: start;
   }
-  .detail-main-img { aspect-ratio: 4/3; }
+  .detail-main-img { max-height: 600px; object-fit: contain; }
   .detail-info { padding: 0; }
   .detail-title { font-size: 1.75rem; }
   .detail-price { font-size: 2.25rem; }
