@@ -42,6 +42,7 @@ const MotorcycleController = {
         if (!req.cookies[cookieName]) {
           const counted = await MotorcycleModel.trackView(req.params.id, req.ip);
           if (counted) {
+            invalidate(KEYS.STATS);
             res.cookie(cookieName, '1', { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax', path: '/' });
           }
         }

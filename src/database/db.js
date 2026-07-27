@@ -92,7 +92,8 @@ async function migrate() {
       site_description: 'منصة عرض وبيع الدراجات النارية في حضرموت واليمن',
       whatsapp_number: '967000000000',
       logo_url: '',
-      email: 'info@daragatuk.sa'
+      email: 'info@daragatuk.sa',
+      total_views: '0'
     };
 
     const insertSettingText = `
@@ -102,6 +103,19 @@ async function migrate() {
     for (const [k, v] of Object.entries(defaults)) {
       await pool.query(insertSettingText, [k, v]);
     }
+
+    // مزامنة العداد التراكمي في بداية التشغيل مع مجموع المشاهدات الحالية إن كانت أعلى
+    await pool.query(`
+      UPDATE settings 
+      SET value = (
+        SELECT GREATEST(
+          COALESCE((SELECT value::BIGINT FROM settings WHERE key = 'total_views'), 0),
+          COALESCE(SUM(views), 0)
+        )::TEXT 
+        FROM motorcycles
+      )
+      WHERE key = 'total_views'
+    `);
 
     console.log('✅ اكتملت تهيئة جداول قاعدة البيانات بنجاح.');
   } catch (err) {

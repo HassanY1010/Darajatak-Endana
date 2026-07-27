@@ -179,6 +179,13 @@ const MotorcycleModel = {
     
     await db.query('INSERT INTO views_log (motorcycle_id, ip_address) VALUES ($1, $2)', [id, ip]);
     await db.query('UPDATE motorcycles SET views = views + 1 WHERE id = $1', [id]);
+
+    // زيادة العداد التراكمي الدائم لإجمالي المشاهدات والزوار في قاعدة البيانات
+    await db.query(`
+      INSERT INTO settings (key, value) VALUES ('total_views', '1')
+      ON CONFLICT (key) DO UPDATE SET value = (COALESCE(settings.value::BIGINT, 0) + 1)::TEXT
+    `);
+
     return true;
   },
 
@@ -256,18 +263,31 @@ const MotorcycleModel = {
         COUNT(CASE WHEN status = 'available' THEN 1 END) AS available,
         COUNT(CASE WHEN status = 'reserved' THEN 1 END) AS reserved,
         COUNT(CASE WHEN status = 'sold' THEN 1 END) AS sold,
-        COALESCE(SUM(views), 0) AS views
+        COALESCE(SUM(views), 0) AS current_views
       FROM motorcycles 
       WHERE ${active}
     `);
     const row = res.rows[0] || {};
     
+    // جلب العداد التراكمي المحفوظ دائمياً في قاعدة البيانات (حتى لو تم حذف إعلانات)
+    const settingRes = await db.query("SELECT value FROM settings WHERE key = 'total_views'");
+    const cumulativeSetting = settingRes.rows[0] ? parseInt(settingRes.rows[0].value || '0', 10) : 0;
+    const currentSum = parseInt(row.current_views || '0', 10);
+
+    const totalViews = Math.max(cumulativeSetting, currentSum);
+    if (currentSum > cumulativeSetting) {
+      await db.query(`
+        INSERT INTO settings (key, value) VALUES ('total_views', $1)
+        ON CONFLICT (key) DO UPDATE SET value = $1
+      `, [currentSum.toString()]);
+    }
+
     return {
       total: parseInt(row.total || 0, 10),
       available: parseInt(row.available || 0, 10),
       reserved: parseInt(row.reserved || 0, 10),
       sold: parseInt(row.sold || 0, 10),
-      totalViews: parseInt(row.views || 0, 10)
+      totalViews
     };
   },
 
