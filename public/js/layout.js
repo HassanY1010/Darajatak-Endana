@@ -16,9 +16,6 @@ initTheme();
 
 async function loadSite() {
   try {
-    // نمسح الكاش القديم دائماً ونجلب الإعدادات من الخادم
-    // (الإعدادات خفيفة جداً ولا تستحق المشكلة التي يسببها الكاش القديم)
-    sessionStorage.removeItem('site_settings');
     const res = await API.settings();
     SITE = res.data || {};
   } catch {

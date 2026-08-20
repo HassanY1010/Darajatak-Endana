@@ -76,9 +76,9 @@ const MotorcycleModel = {
 
     const offset = (Math.max(1, page) - 1) * limit;
 
-    // جلب الصفوف المحددة بالصفحة
+    // جلب الصفوف المحددة بالصفحة (استثناء الحقول النصية الطويلة كالـ description لتقليل استهلاك البيانات)
     const rowsQuery = `
-      SELECT m.*, a.name AS admin_name, a.phone AS admin_phone
+      SELECT m.id, m.title, m.brand, m.price, m.currency, m.status, m.main_image, m.views, m.ad_number, m.city, m.region, m.created_at, m.expires_at, a.name AS admin_name, a.phone AS admin_phone
       FROM motorcycles m
       LEFT JOIN admins a ON m.created_by = a.id
       ${whereSql}

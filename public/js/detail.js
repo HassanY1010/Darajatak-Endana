@@ -1,4 +1,4 @@
-// ===== صفحة تفاصيل الدراجة — تصميم نظيف =====
+// ===== صفحة تفاصيل الدراجة — تصميم نظيف ومحسن للأداء =====
 (function () {
   const params = new URLSearchParams(location.search);
   const id = params.get('id');
@@ -25,7 +25,7 @@
     setMeta('description', m.title + ' — ' + m.brand + ' بسعر ' + Utils.formatPrice(m.price, m.currency));
     setMeta('og:title', m.title + ' | دراجتك عندنا');
     setMeta('og:description', m.brand);
-    setMeta('og:image', m.main_image || '/images/og-default.jpg');
+    setMeta('og:image', Utils.img(m.main_image, false));
     setMeta('og:url', location.href);
 
     document.getElementById('detail').innerHTML = `
@@ -37,10 +37,10 @@
 
       <div class="detail-body">
       <div class="detail-images">
-        ${Utils.imgTag(mainImg, m.title, 'detail-main-img', 'id="main-image"')}
+        ${Utils.imgTag(mainImg, m.title, 'detail-main-img', 'id="main-image"', false)}
         ${images.length > 1 ? `
         <div class="detail-thumbs">
-          ${images.map((url, i) => Utils.imgTag(url, 'صورة ' + (i+1), (url === mainImg ? 'active' : ''), 'data-url="' + url + '"')).join('')}
+          ${images.map((url, i) => Utils.imgTag(url, 'صورة ' + (i+1), (url === mainImg ? 'active' : ''), 'data-url="' + url + '"', true)).join('')}
         </div>
         <div style="display:flex;gap:8px;">
           <button id="prev-img" class="btn-primary" style="height:40px;padding:0 16px;font-size:.85rem;flex:1;border-radius:10px;"><i class="fas fa-chevron-right"></i> السابق</button>
@@ -82,7 +82,7 @@
       const mainEl = document.getElementById('main-image');
       function setIdx(i) {
         idx = (i + images.length) % images.length;
-        if (mainEl) mainEl.src = Utils.img(images[idx]);
+        if (mainEl) mainEl.src = Utils.img(images[idx], false);
         document.querySelectorAll('.detail-thumbs img').forEach(t => t.classList.toggle('active', t.dataset.url === images[idx]));
       }
       var prevBtn = document.getElementById('prev-img');
@@ -99,10 +99,6 @@
       document.getElementById('detail').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>معرّف الدراجة مفقود</h3></div>';
       return;
     }
-    
-    const logo = (window.SITE && window.SITE.logo_url) 
-      ? Utils.img(window.SITE.logo_url) 
-      : 'https://tbogujraszjmiykxinfd.supabase.co/storage/v1/object/public/motorcycles/logo-1782041024871-73cb3a6f.jpg';
       
     document.getElementById('detail').innerHTML = `
       <div class="breadcrumb" style="opacity: 0.5; margin-bottom: 24px;">
@@ -111,7 +107,7 @@
       <div class="detail-body">
         <div class="detail-images">
           <div class="skeleton-card" style="aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; background: var(--bg-elevated); border-radius: 16px; border: 1px solid var(--border-light); width: 100%;">
-            <img src="${logo}" alt="تحميل" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; opacity: 0.25; animation: pulse-logo 1.5s infinite ease-in-out;">
+            <i class="fas fa-motorcycle" style="font-size: 3rem; color: var(--primary); opacity: 0.15; animation: pulse-logo 1.5s infinite ease-in-out;"></i>
           </div>
         </div>
         <div class="detail-info" style="display: flex; flex-direction: column; gap: 16px;">

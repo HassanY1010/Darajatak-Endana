@@ -39,6 +39,7 @@ data/*.db
 data/*.db-journal
 data/*.db-wal
 data/*.db-shm
+data/cache/
 
 # Uploads & Media (الصور المرفوعة محلياً أثناء التطوير)
 public/uploads/*

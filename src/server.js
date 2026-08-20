@@ -90,9 +90,13 @@ app.get('/motorcycle.html', async (req, res, next) => {
     const description = `${moto.brand || ''} ${moto.model || ''} - السعر: ${moto.price.toLocaleString('ar-SA')} ريال سعودي - ممشى: ${moto.mileage ? moto.mileage.toLocaleString('ar-SA') + ' كم' : ''}`;
     
     let imageUrl = moto.main_image || '/images/og-default.jpg';
-    if (imageUrl.startsWith('/uploads') || imageUrl.startsWith('uploads')) {
-      const host = req.get('host');
-      const protocol = req.protocol;
+    const host = req.get('host');
+    const protocol = req.protocol;
+
+    if (imageUrl.includes('.supabase.co/storage/v1/object/public/motorcycles/')) {
+      const filename = imageUrl.split('/motorcycles/').pop().split('?')[0];
+      imageUrl = `${protocol}://${host}/api/images/${filename}`;
+    } else if (imageUrl.startsWith('/uploads') || imageUrl.startsWith('uploads')) {
       imageUrl = `${protocol}://${host}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
     }
 
