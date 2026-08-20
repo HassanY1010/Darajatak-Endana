@@ -68,20 +68,28 @@ async function uploadImage(filename, buffer, mimetype) {
  * حذف صورة من حوض التخزين (Bucket) في Supabase
  */
 async function deleteImage(imageUrl) {
-  if (!supabase || !imageUrl) return;
+  if (!supabase || !imageUrl) return false;
 
   // تجاهل الصور المرفوعة محلياً مسبقاً (إرث)
-  if (imageUrl.startsWith('/uploads/')) return;
+  if (imageUrl.startsWith('/uploads/')) return true;
 
-  const filename = imageUrl.split('/').pop();
+  let filename = imageUrl.split('/').pop();
   if (filename) {
+    filename = filename.split('?')[0]; // إزالة أي query parameters إن وجدت
     try {
-      await supabase.storage.from(config.supabase.bucket).remove([filename]);
+      const { data, error } = await supabase.storage.from(config.supabase.bucket).remove([filename]);
+      if (error) {
+        console.error(`❌ فشل حذف الصورة من Supabase storage: ${filename}`, error.message);
+        return false;
+      }
       console.log(`✅ تم حذف الصورة من Supabase storage: ${filename}`);
+      return true;
     } catch (e) {
       console.error(`❌ فشل حذف الصورة من Supabase storage: ${filename}`, e.message);
+      return false;
     }
   }
+  return false;
 }
 
 module.exports = {

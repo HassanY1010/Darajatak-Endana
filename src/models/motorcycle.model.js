@@ -308,35 +308,51 @@ const MotorcycleModel = {
     return res.rows;
   },
 
-  // ===== التنظيف التلقائي للعروض المنتهية =====
+  // ===== التنظيف التلقائي للعروض المنتهية بعد 30 يوماً =====
   async cleanupExpired() {
-    // حذف نهائي فقط بعد 90 يوم من انتهاء الإعلان لمنح البائع فرصة التجديد
+    // حذف نهائي كامل للدراجة وصورها بمجرد انتهاء مدة الـ 30 يوماً (expires_at <= NOW())
     const expiredRes = await db.query(
-      "SELECT * FROM motorcycles WHERE expires_at < NOW() - INTERVAL '90 days'"
+      "SELECT * FROM motorcycles WHERE expires_at <= NOW()"
     );
     const expired = expiredRes.rows;
 
     if (!expired.length) return 0;
 
     const { deleteImage } = require('../utils/supabase');
+    let deletedCount = 0;
 
     for (const moto of expired) {
-      const images = await this.getImages(moto.id);
-      for (const img of images) {
-        if (img.image_url) {
-          if (img.image_url.startsWith('/uploads/')) {
-            const filePath = path.join(config.paths.public, img.image_url.replace(/^\//, ''));
-            try { fs.unlinkSync(filePath); } catch (e) { /* تجاهل */ }
+      try {
+        const images = await this.getImages(moto.id);
+        const allImageUrls = new Set(images.map(img => img.image_url).filter(Boolean));
+        if (moto.main_image) {
+          allImageUrls.add(moto.main_image);
+        }
+
+        // 1. حذف جميع ملفات الصور الفعلية من Supabase Storage / المجلد المحلي
+        for (const imageUrl of allImageUrls) {
+          if (imageUrl.startsWith('/uploads/')) {
+            const filePath = path.join(config.paths.public, imageUrl.replace(/^\//, ''));
+            try { 
+              if (fs.existsSync(filePath)) fs.unlinkSync(filePath); 
+            } catch (e) {
+              console.error(`❌ خطأ في حذف الملف المحلي: ${filePath}`, e.message);
+            }
           } else {
-            await deleteImage(img.image_url);
+            await deleteImage(imageUrl);
           }
         }
+
+        // 2. حذف سجل الدراجة من قاعدة البيانات (CASCADE يحذف تلقائياً من images و views_log)
+        await db.query('DELETE FROM motorcycles WHERE id = $1', [moto.id]);
+        deletedCount++;
+        console.log(`🧹 تم الحذف النهائي الكامل للدراجة المنتهية ID: ${moto.id} (${moto.title}) وجميع صورها.`);
+      } catch (err) {
+        console.error(`❌ خطأ أثناء معالجة وحذف الدراجة المنتهية ID: ${moto.id}:`, err.message);
       }
-      // CASCADE يحذف سجلات الصور تلقائياً
-      await db.query('DELETE FROM motorcycles WHERE id = $1', [moto.id]);
     }
 
-    return expired.length;
+    return deletedCount;
   }
 };
 

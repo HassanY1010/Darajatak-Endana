@@ -155,13 +155,19 @@ const MotorcycleController = {
 
   async remove(req, res) {
     try {
-      // حذف ملفات الصور المرتبطة قبل حذف السجل
+      const moto = await MotorcycleModel.findById(req.params.id);
+      if (!moto) return res.status(404).json({ success: false, message: 'الدراجة غير موجودة' });
+
+      // تجميع كافة روابط الصور المرتبطة بالدراجة (بما فيها الصورة الرئيسية)
       const images = await MotorcycleModel.getImages(req.params.id);
+      const allImageUrls = new Set(images.map(img => img.image_url).filter(Boolean));
+      if (moto.main_image) allImageUrls.add(moto.main_image);
+
       const ok = await MotorcycleModel.delete(req.params.id);
       if (!ok) return res.status(404).json({ success: false, message: 'الدراجة غير موجودة' });
       
-      for (const img of images) {
-        await deleteStorageImage(img.image_url);
+      for (const imgUrl of allImageUrls) {
+        await deleteStorageImage(imgUrl);
       }
       invalidate(KEYS.STATS);
       invalidate(KEYS.FEATURED);
