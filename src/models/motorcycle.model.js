@@ -308,51 +308,186 @@ const MotorcycleModel = {
     return res.rows;
   },
 
-  // ===== التنظيف التلقائي للعروض المنتهية بعد 30 يوماً =====
-  async cleanupExpired() {
-    // حذف نهائي كامل للدراجة وصورها بمجرد انتهاء مدة الـ 30 يوماً (expires_at <= NOW())
-    const expiredRes = await db.query(
-      "SELECT * FROM motorcycles WHERE expires_at <= NOW()"
-    );
-    const expired = expiredRes.rows;
+  // ===== التنظيف التلقائي للعروض المنتهية بعد 30 يوماً وإدارة التخزين بأمان =====
+  async isImageReferencedElsewhere(imageUrl, excludeMotorcycleId = null) {
+    if (!imageUrl) return false;
+    const filename = imageUrl.split('/').pop().split('?')[0];
+    
+    let query = 'SELECT 1 FROM images WHERE (image_url = $1 OR image_url LIKE $2)';
+    const params = [imageUrl, `%/${filename}%`];
+    if (excludeMotorcycleId) {
+      query += ' AND motorcycle_id <> $3';
+      params.push(excludeMotorcycleId);
+    }
+    query += ' LIMIT 1';
+    const res = await db.query(query, params);
+    if (res.rowCount > 0) return true;
 
-    if (!expired.length) return 0;
+    // أيضاً فحص جدول motorcycles للحقل main_image
+    let mainQuery = 'SELECT 1 FROM motorcycles WHERE (main_image = $1 OR main_image LIKE $2)';
+    const mainParams = [imageUrl, `%/${filename}%`];
+    if (excludeMotorcycleId) {
+      mainQuery += ' AND id <> $3';
+      mainParams.push(excludeMotorcycleId);
+    }
+    mainQuery += ' LIMIT 1';
+    const mainRes = await db.query(mainQuery, mainParams);
+    return mainRes.rowCount > 0;
+  },
+
+  async recordFailedStorageCleanup(imageUrl, errorMessage) {
+    if (!imageUrl || imageUrl.startsWith('/uploads/')) return;
+    try {
+      await db.query(`
+        INSERT INTO failed_storage_cleanups (image_url, retry_count, last_error, updated_at)
+        VALUES ($1, 1, $2, NOW())
+        ON CONFLICT (image_url) DO UPDATE SET
+          retry_count = failed_storage_cleanups.retry_count + 1,
+          last_error = $2,
+          updated_at = NOW()
+      `, [imageUrl, String(errorMessage || 'Unknown error').slice(0, 500)]);
+    } catch (e) {
+      console.error('❌ خطأ في تسجيل فشل حذف التخزين:', e.message);
+    }
+  },
+
+  async retryFailedStorageCleanups(limit = 50) {
+    const res = await db.query(
+      'SELECT id, image_url, retry_count FROM failed_storage_cleanups WHERE retry_count <= 30 ORDER BY updated_at ASC LIMIT $1',
+      [limit]
+    );
+    if (!res.rows.length) return 0;
 
     const { deleteImage } = require('../utils/supabase');
-    let deletedCount = 0;
+    let resolvedCount = 0;
 
-    for (const moto of expired) {
-      try {
-        const images = await this.getImages(moto.id);
-        const allImageUrls = new Set(images.map(img => img.image_url).filter(Boolean));
-        if (moto.main_image) {
-          allImageUrls.add(moto.main_image);
-        }
+    for (const row of res.rows) {
+      // فحص هل الصورة ما زالت مستخدمة من أي إعلان
+      const isUsed = await this.isImageReferencedElsewhere(row.image_url);
+      if (isUsed) {
+        // لم تعد يتيمة بل أصبحت مستخدمة في إعلان آخر، نحذفها من جدول الفشل
+        await db.query('DELETE FROM failed_storage_cleanups WHERE id = $1', [row.id]);
+        resolvedCount++;
+        continue;
+      }
 
-        // 1. حذف جميع ملفات الصور الفعلية من Supabase Storage / المجلد المحلي
-        for (const imageUrl of allImageUrls) {
-          if (imageUrl.startsWith('/uploads/')) {
-            const filePath = path.join(config.paths.public, imageUrl.replace(/^\//, ''));
-            try { 
-              if (fs.existsSync(filePath)) fs.unlinkSync(filePath); 
-            } catch (e) {
-              console.error(`❌ خطأ في حذف الملف المحلي: ${filePath}`, e.message);
+      const success = await deleteImage(row.image_url);
+      if (success) {
+        await db.query('DELETE FROM failed_storage_cleanups WHERE id = $1', [row.id]);
+        resolvedCount++;
+      } else {
+        await db.query(
+          'UPDATE failed_storage_cleanups SET retry_count = retry_count + 1, updated_at = NOW() WHERE id = $1',
+          [row.id]
+        );
+      }
+    }
+    return resolvedCount;
+  },
+
+  async cleanupExpired(batchSize = 100) {
+    // استخدام Advisory Lock لمنع تضارب تشغيل أكثر من Worker بالتوازي
+    const lockRes = await db.query('SELECT pg_try_advisory_lock(74291823) AS acquired');
+    if (!lockRes.rows[0] || !lockRes.rows[0].acquired) {
+      console.log('🔒 تخطي دورة التنظيف: مهمة تنظيف أخرى قيد التنفيذ حالياً.');
+      return 0;
+    }
+
+    const { deleteImage } = require('../utils/supabase');
+    let totalDeleted = 0;
+
+    try {
+      while (true) {
+        // جلب دفعة محددة (Batch) من الإعلانات المنتهية الصلاحية
+        const expiredRes = await db.query(
+          'SELECT id, title, main_image FROM motorcycles WHERE expires_at <= NOW() ORDER BY id ASC LIMIT $1',
+          [batchSize]
+        );
+        const expired = expiredRes.rows;
+        if (!expired.length) break;
+
+        for (const moto of expired) {
+          try {
+            // 1. تجميع كافة روابط الصور للإعلان
+            const images = await this.getImages(moto.id);
+            const allImageUrls = new Set(images.map(img => img.image_url).filter(Boolean));
+            if (moto.main_image) {
+              allImageUrls.add(moto.main_image);
             }
-          } else {
-            await deleteImage(imageUrl);
+
+            // 2. التحقق من أمان الحذف ضد السباق مع التجديد (Renew Race Condition)
+            // الحذف المشروط: نحذف فقط إذا كان الإعلان لا يزال منتهياً لحظة التنفيذ
+            const deleteRes = await db.query(
+              'DELETE FROM motorcycles WHERE id = $1 AND expires_at <= NOW() RETURNING id',
+              [moto.id]
+            );
+
+            // إذا لم يُحذف السجل (مثلاً تم تجديد الإعلان أو حذفه مسبقاً)، نتراجع ولا نحذف صوره
+            if (deleteRes.rowCount === 0) {
+              console.log(`⚠️ تم تخطي حذف الدراجة ID: ${moto.id} (قد تم تجديدها أو معالجتها).`);
+              continue;
+            }
+
+            // 3. حذف ملفات الصور مع التحقق من عدم مشاركتها مع إعلان آخر (Shared Image Reference Check)
+            for (const imageUrl of allImageUrls) {
+              const isUsedElsewhere = await this.isImageReferencedElsewhere(imageUrl);
+              if (isUsedElsewhere) {
+                console.log(`ℹ️ الصورة ${imageUrl} مستخدمة في إعلان آخر، تم الاحتفاظ بها في التخزين.`);
+                continue;
+              }
+
+              if (imageUrl.startsWith('/uploads/')) {
+                const filePath = path.join(config.paths.public, imageUrl.replace(/^\//, ''));
+                try {
+                  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                } catch (e) {
+                  console.error(`❌ خطأ في حذف الملف المحلي: ${filePath}`, e.message);
+                }
+              } else {
+                const ok = await deleteImage(imageUrl);
+                if (!ok) {
+                  // تسجيل الصورة الفاشلة في جدول المهام للمحاولة لاحقاً
+                  await this.recordFailedStorageCleanup(imageUrl, 'Failed to delete from Supabase storage during cleanup');
+                }
+              }
+            }
+
+            totalDeleted++;
+            console.log(`🧹 تم الحذف النهائي للدراجة المنتهية ID: ${moto.id} (${moto.title}) وتصفية صورها.`);
+          } catch (err) {
+            console.error(`❌ خطأ أثناء معالجة الدراجة المنتهية ID: ${moto.id}:`, err.message);
           }
         }
 
-        // 2. حذف سجل الدراجة من قاعدة البيانات (CASCADE يحذف تلقائياً من images و views_log)
-        await db.query('DELETE FROM motorcycles WHERE id = $1', [moto.id]);
-        deletedCount++;
-        console.log(`🧹 تم الحذف النهائي الكامل للدراجة المنتهية ID: ${moto.id} (${moto.title}) وجميع صورها.`);
-      } catch (err) {
-        console.error(`❌ خطأ أثناء معالجة وحذف الدراجة المنتهية ID: ${moto.id}:`, err.message);
+        // إذا كانت الدفعة أقل من الحد الأقصى، فقد اكتملت جميع السجلات
+        if (expired.length < batchSize) break;
       }
+
+      // إعادة محاولة تنظيف الصور الفاشلة السابقة
+      await this.retryFailedStorageCleanups();
+    } finally {
+      // تحرير الـ Advisory Lock
+      await db.query('SELECT pg_advisory_unlock(74291823)');
     }
 
-    return deletedCount;
+    return totalDeleted;
+  },
+
+  // كشف السجلات اليتيمة في قاعدة البيانات وملفات التخزين
+  async detectOrphans() {
+    const orphanImagesRes = await db.query(`
+      SELECT i.id, i.motorcycle_id, i.image_url 
+      FROM images i 
+      LEFT JOIN motorcycles m ON i.motorcycle_id = m.id 
+      WHERE m.id IS NULL
+    `);
+
+    const failedCleanupsRes = await db.query('SELECT COUNT(*) AS count FROM failed_storage_cleanups');
+
+    return {
+      orphanDbImageRecords: orphanImagesRes.rows,
+      failedStorageCleanupsCount: parseInt(failedCleanupsRes.rows[0]?.count || 0, 10)
+    };
   }
 };
 

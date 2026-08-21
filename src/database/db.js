@@ -68,9 +68,20 @@ async function migrate() {
         created_at    TIMESTAMP NOT NULL DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS failed_storage_cleanups (
+        id            SERIAL PRIMARY KEY,
+        image_url     TEXT NOT NULL UNIQUE,
+        retry_count   INTEGER NOT NULL DEFAULT 0,
+        last_error    TEXT,
+        created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at    TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+
       CREATE INDEX IF NOT EXISTS idx_images_moto ON images(motorcycle_id);
+      CREATE INDEX IF NOT EXISTS idx_images_url ON images(image_url);
       CREATE INDEX IF NOT EXISTS idx_moto_status ON motorcycles(status);
       CREATE INDEX IF NOT EXISTS idx_moto_brand ON motorcycles(brand);
+      CREATE INDEX IF NOT EXISTS idx_moto_expires ON motorcycles(expires_at);
       CREATE INDEX IF NOT EXISTS idx_views_moto_ip ON views_log(motorcycle_id, ip_address);
       CREATE INDEX IF NOT EXISTS idx_views_created ON views_log(created_at);
     `);

@@ -274,15 +274,24 @@ async function attachUploadedImages(req, motorcycleId) {
   }
 }
 
-async function deleteStorageImage(imageUrl) {
+async function deleteStorageImage(imageUrl, excludeMotorcycleId = null) {
   if (!imageUrl) return;
+  const isUsed = await MotorcycleModel.isImageReferencedElsewhere(imageUrl, excludeMotorcycleId);
+  if (isUsed) {
+    console.log(`ℹ️ الصورة ${imageUrl} مستخدمة في إعلان آخر، لن يتم حذفها من التخزين.`);
+    return;
+  }
+
   if (imageUrl.startsWith('/uploads/')) {
     // إرث: حذف الصورة المحلية القديمة إن وجدت
     const filePath = path.join(config.paths.public, imageUrl.replace(/^\//, ''));
     fs.promises.unlink(filePath).catch(() => {});
   } else {
     // حذف الصورة من Supabase storage
-    await deleteImage(imageUrl);
+    const ok = await deleteImage(imageUrl);
+    if (!ok) {
+      await MotorcycleModel.recordFailedStorageCleanup(imageUrl, 'Failed to delete during manual remove');
+    }
   }
 }
 
