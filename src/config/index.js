@@ -34,6 +34,7 @@ const config = {
     root: path.join(__dirname, '..', '..'),
     public: path.join(__dirname, '..', '..', 'public'),
     dataDir: path.join(__dirname, '..', '..', 'data'),
+    cacheDir: process.env.CACHE_DIR || path.join(__dirname, '..', '..', 'data', 'cache', 'images'),
     dbFile: path.join(__dirname, '..', '..', 'data', 'daragatuk.db')
   }
 };

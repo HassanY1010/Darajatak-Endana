@@ -40,7 +40,7 @@
       const isMain = current.main_image === im.image_url;
       return `
       <div class="relative group rounded-xl overflow-hidden border-2 ${isMain ? 'border-gold' : 'admin-img-border'}">
-        <img src="${im.image_url}" class="w-full aspect-square object-cover" alt="">
+        <img src="${Utils.img(im.image_url, true)}" class="w-full aspect-square object-cover" alt="" loading="lazy">
         ${isMain ? '<span class="absolute top-1 right-1 text-[10px] admin-img-main-badge px-1.5 py-0.5 rounded font-bold">رئيسية</span>' : ''}
         <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
           ${!isMain ? `<button type="button" data-main="${im.image_url}" title="تعيين رئيسية" class="w-8 h-8 grid place-items-center rounded-lg bg-gold text-black"><i class="fas fa-star"></i></button>` : ''}

@@ -81,7 +81,7 @@
       g('s-desc').value = data.site_description || '';
       g('s-wa').value = (Admin.me && Admin.me.phone) || data.whatsapp_number || '';
       g('s-email').value = (Admin.me && Admin.me.email) || data.email || '';
-      if (data.logo_url) { g('logo-preview').src = data.logo_url; g('logo-preview').classList.remove('hidden'); }
+      if (data.logo_url) { g('logo-preview').src = Utils.img(data.logo_url); g('logo-preview').classList.remove('hidden'); }
 
       // حفظ الإعدادات (بدون رقم واتساب — ثابت من حساب المدير)
       g('settings-form').addEventListener('submit', async (e) => {

@@ -7,12 +7,20 @@ const crypto = require('crypto');
 const sharp = require('sharp');
 const config = require('../config');
 
-const CACHE_DIR = path.join(config.paths.dataDir, 'cache', 'images');
+const CACHE_DIR = config.paths.cacheDir;
 
 // التأكد من وجود مجلد الكاش
 if (!fs.existsSync(CACHE_DIR)) {
-  fs.mkdirSync(CACHE_DIR, { recursive: true });
+  try {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+  } catch (e) {
+    console.error('⚠️ تعذر إنشاء مجلد الكاش عند البدء:', e.message);
+  }
 }
+
+// Single-Flight In-Flight Promises Map لحماية Origin من الطلبات المتزامنة
+const inFlightFetches = new Map();
+const inFlightProcessing = new Map();
 
 // نمط صارم لأسماء الملفات المسموح بها لمنع Path Traversal و SSRF
 const SAFE_FILENAME_REGEX = /^[a-zA-Z0-9_\-\.]+\.(jpg|jpeg|png|webp|gif)$/i;
@@ -28,10 +36,34 @@ try {
 }
 
 /**
- * جلب الصورة من Supabase Storage وحفظها محلياً
+ * كتابة آمنة وذرية للملف في الكاش عبر ملف مؤقت ثم Rename
+ */
+function atomicWriteFileSync(targetPath, buffer) {
+  const dir = path.dirname(targetPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  const tempPath = path.join(dir, `.tmp_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`);
+  try {
+    fs.writeFileSync(tempPath, buffer);
+    fs.renameSync(tempPath, targetPath);
+  } catch (e) {
+    if (fs.existsSync(tempPath)) {
+      try { fs.unlinkSync(tempPath); } catch (_) {}
+    }
+    throw e;
+  }
+}
+
+/**
+ * جلب الصورة من Supabase Storage وحفظها محلياً مع Single-Flight Lock
  */
 function fetchFromSupabase(filename) {
-  return new Promise((resolve, reject) => {
+  if (inFlightFetches.has(filename)) {
+    return inFlightFetches.get(filename);
+  }
+
+  const promise = new Promise((resolve, reject) => {
     if (!config.supabase.url || !config.supabase.bucket) {
       return reject(new Error('Supabase configuration is missing.'));
     }
@@ -57,7 +89,12 @@ function fetchFromSupabase(filename) {
     req.setTimeout(8000, () => {
       req.destroy(new Error('Request timeout fetching image from Supabase'));
     });
+  }).finally(() => {
+    inFlightFetches.delete(filename);
   });
+
+  inFlightFetches.set(filename, promise);
+  return promise;
 }
 
 /**
@@ -67,9 +104,41 @@ function generateETag(buffer) {
   return crypto.createHash('md5').update(buffer).digest('hex');
 }
 
+/**
+ * جلب وتأكيد توفر الملف الأصلي محلياً في الكاش (Single Origin Fetch)
+ */
+async function getOrFetchOriginal(filename, ext) {
+  const originalPath = path.join(CACHE_DIR, filename);
+  let contentType = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+
+  if (fs.existsSync(originalPath)) {
+    return { buffer: fs.readFileSync(originalPath), contentType };
+  }
+
+  // فحص الصور المرفوعة محلياً مسبقاً (إرث)
+  const localUploadPath = path.join(config.upload.dir, filename);
+  if (fs.existsSync(localUploadPath)) {
+    const originalBuffer = fs.readFileSync(localUploadPath);
+    atomicWriteFileSync(originalPath, originalBuffer);
+    return { buffer: originalBuffer, contentType };
+  }
+
+  // جلب من Supabase مع Single-Flight Lock
+  const result = await fetchFromSupabase(filename);
+  if (result.status !== 200 || !result.buffer) {
+    const err = new Error(result.status === 404 ? 'Image not found' : 'Image not available');
+    err.status = result.status === 404 ? 404 : 502;
+    throw err;
+  }
+
+  if (result.contentType) contentType = result.contentType;
+  atomicWriteFileSync(originalPath, result.buffer);
+  return { buffer: result.buffer, contentType };
+}
+
 const ImageController = {
   /**
-   * تقديم صورة مع كاش محلي وتحسين الحجم (Proxy + Thumbnailing)
+   * تقديم صورة مع كاش محلي وتحسين الحجم (Proxy + Thumbnailing + In-Flight Deduplication)
    */
   async serveImage(req, res) {
     try {
@@ -98,11 +167,11 @@ const ImageController = {
       const ext = path.extname(filename).toLowerCase();
       const baseName = path.basename(filename, ext);
       
-      // اسم ملف الكاش المحلي
+      // اسم ومسار ملف الكاش المحلي
       const cacheFilename = width ? `${baseName}_w${width}${ext}` : filename;
       const cachePath = path.join(CACHE_DIR, cacheFilename);
 
-      // 1. التحقق إن كان الملف موجوداً مسبقاً في كاش السيرفر
+      // 1. التحقق إن كان الملف موجوداً مسبقاً في كاش السيرفر (Cache HIT)
       if (fs.existsSync(cachePath)) {
         const stat = fs.statSync(cachePath);
         const etag = `"${stat.size}-${stat.mtimeMs}"`;
@@ -120,70 +189,66 @@ const ImageController = {
         return fs.createReadStream(cachePath).pipe(res);
       }
 
-      // 2. إذا لم يكن في الكاش، نتحقق من الملف الأصلي
-      const originalPath = path.join(CACHE_DIR, filename);
-      let originalBuffer = null;
-      let contentType = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+      // 2. معالجة الطلب المتزامن عبر In-Flight Processing Lock لكل Variant
+      const requestKey = `${filename}_w${width || 'orig'}`;
+      let processingPromise = inFlightProcessing.get(requestKey);
 
-      if (fs.existsSync(originalPath)) {
-        originalBuffer = fs.readFileSync(originalPath);
-      } else {
-        // التحقق إن كانت صورة مرفوعة محلياً مسبقاً في public/uploads
-        const localUploadPath = path.join(config.upload.dir, filename);
-        if (fs.existsSync(localUploadPath)) {
-          originalBuffer = fs.readFileSync(localUploadPath);
-          fs.writeFileSync(originalPath, originalBuffer);
-        } else {
-          // جلبها من Supabase Storage (مرة واحدة فقط)
-          const result = await fetchFromSupabase(filename);
-          if (result.status !== 200 || !result.buffer) {
-            // إرجاع صورة احتياطية في حال تعذر الوصول للأصلية
-            return res.status(result.status === 404 ? 404 : 502).json({ error: 'Image not available' });
+      if (!processingPromise) {
+        processingPromise = (async () => {
+          // جلب الأصل مرة واحدة
+          const original = await getOrFetchOriginal(filename, ext);
+          let finalBuffer = original.buffer;
+          let finalContentType = original.contentType;
+
+          // تحويل وتصغير الصورة إذا طلب عرض معين
+          if (width) {
+            try {
+              finalBuffer = await sharp(original.buffer)
+                .resize({ width, withoutEnlargement: true })
+                .jpeg({ quality: 80, progressive: true })
+                .toBuffer();
+              finalContentType = 'image/jpeg';
+            } catch (sharpErr) {
+              console.error(`⚠️ فشل تصغير الصورة ${filename}:`, sharpErr.message);
+              finalBuffer = original.buffer;
+            }
           }
-          originalBuffer = result.buffer;
-          if (result.contentType) contentType = result.contentType;
-          fs.writeFileSync(originalPath, originalBuffer);
-        }
+
+          // كتابة ذرية في الكاش
+          try {
+            atomicWriteFileSync(cachePath, finalBuffer);
+          } catch (e) {
+            console.error('⚠️ خطأ في كتابة كاش الصورة:', e.message);
+          }
+
+          return { buffer: finalBuffer, contentType: finalContentType };
+        })().finally(() => {
+          inFlightProcessing.delete(requestKey);
+        });
+
+        inFlightProcessing.set(requestKey, processingPromise);
       }
 
-      // 3. معالجة وتصغير الصورة إذا تم طلب عرض معين (Thumbnail)
-      let finalBuffer = originalBuffer;
-      if (width) {
-        try {
-          finalBuffer = await sharp(originalBuffer)
-            .resize({ width, withoutEnlargement: true })
-            .jpeg({ quality: 80, progressive: true })
-            .toBuffer();
-          contentType = 'image/jpeg';
-        } catch (sharpErr) {
-          console.error(`⚠️ فشل تصغير الصورة ${filename}:`, sharpErr.message);
-          finalBuffer = originalBuffer;
-        }
-      }
-
-      // حفظ في الكاش المحلي
-      try {
-        fs.writeFileSync(cachePath, finalBuffer);
-      } catch (e) {
-        // تجاهل أخطاء كتابة الكاش والاستمرار بالخدمة
-      }
-
-      const etag = `"${generateETag(finalBuffer)}"`;
+      const result = await processingPromise;
+      const etag = `"${generateETag(result.buffer)}"`;
 
       if (req.headers['if-none-match'] === etag) {
         return res.status(304).end();
       }
 
       res.set({
-        'Content-Type': contentType,
+        'Content-Type': result.contentType,
         'Cache-Control': 'public, max-age=31536000, immutable',
         'ETag': etag,
         'X-Cache': 'MISS-FETCHED'
       });
 
-      return res.end(finalBuffer);
+      return res.end(result.buffer);
 
     } catch (err) {
+      if (err.status) {
+        return res.status(err.status).json({ error: err.message });
+      }
       console.error('❌ خطأ في تقديم الصورة:', err.message);
       if (!res.headersSent) {
         res.status(500).json({ error: 'Internal server error processing image' });
