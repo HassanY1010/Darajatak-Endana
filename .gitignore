@@ -66,3 +66,15 @@ public/uploads/*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Backup System Artifacts & Local Stores
+*.dump
+*.dump.sha256
+*.dump.partial
+backup-manifest*.json
+backup-failures*.json
+database-agent*.lock
+database-agent-state.json
+backup-agent.lock
+backup-agent-state.json
+backups/

@@ -10,7 +10,20 @@
     "seed": "node src/database/seed.js",
     "pm2:start": "pm2 start ecosystem.config.js",
     "pm2:stop": "pm2 stop daragatuk-alayna",
-    "pm2:logs": "pm2 logs daragatuk-alayna"
+    "pm2:logs": "pm2 logs daragatuk-alayna",
+    "backup:images": "node src/backup/cli.js backup",
+    "backup:agent": "node src/backup/cli.js agent",
+    "backup:status": "node src/backup/cli.js status",
+    "backup:verify": "node src/backup/cli.js verify",
+    "backup:audit": "node src/backup/cli.js audit",
+    "restore:images": "node src/backup/cli.js restore",
+    "db:backup": "node src/database-backup/cli.js backup",
+    "db:backup:agent": "node src/database-backup/cli.js agent",
+    "db:backup:status": "node src/database-backup/cli.js status",
+    "db:backup:verify": "node src/database-backup/cli.js verify",
+    "db:backup:list": "node src/database-backup/cli.js list",
+    "db:backup:cleanup": "node src/database-backup/cli.js cleanup",
+    "db:restore": "node src/database-backup/cli.js restore"
   },
   "keywords": [
     "motorcycles",
