@@ -58,19 +58,19 @@
     }
     tbody.innerHTML = data.map(m => `
       <tr class="admin-table-row border-t">
-        <td data-label=""><img src="${Utils.img(m.main_image)}" class="w-14 h-14 rounded-xl object-cover" alt=""></td>
-        <td data-label="الاسم"><div class="font-bold">${m.title}</div><div class="text-xs text-gray-400">${m.brand}${m.city ? ' | ' + m.city : ''}${m.region ? ' (' + m.region + ')' : ''}</div></td>
+        <td data-label=""><img src="${Utils.escapeHtml(Utils.img(m.main_image))}" class="w-14 h-14 rounded-xl object-cover" alt=""></td>
+        <td data-label="الاسم"><div class="font-bold">${Utils.escapeHtml(m.title)}</div><div class="text-xs text-gray-400">${Utils.escapeHtml(m.brand)}${m.city ? ' | ' + Utils.escapeHtml(m.city) : ''}${m.region ? ' (' + Utils.escapeHtml(m.region) + ')' : ''}</div></td>
         <td data-label="السعر" class="font-bold whitespace-nowrap text-gold">${Utils.formatPrice(m.price, m.currency)}</td>
         <td data-label="الحالة">${statusSelect(m)}</td>
         <td data-label="المشاهدات" class="text-center">${viewsCell(m.views)}</td>
         <td data-label="الصلاحية" class="text-center">${expiryCell(m.expiresAt || m.expires_at)}</td>
-        <td data-label="التاريخ" class="text-gray-400 whitespace-nowrap" dir="ltr">${(m.created_at || '').split(' ')[0]}</td>
+        <td data-label="التاريخ" class="text-gray-400 whitespace-nowrap" dir="ltr">${Utils.escapeHtml((m.created_at || '').split(' ')[0])}</td>
         <td data-label="إجراءات" class="text-center">
           <div class="flex items-center justify-center gap-2">
-            <a href="/admin/edit.html?id=${m.id}" title="تعديل" class="admin-action-btn admin-action-btn--edit touch-btn w-9 h-9 grid place-items-center rounded-xl"><i class="fas fa-pen"></i></a>
-            <a href="/motorcycle.html?id=${m.id}" target="_blank" title="عرض" class="admin-action-btn admin-action-btn--view touch-btn w-9 h-9 grid place-items-center rounded-xl"><i class="fas fa-eye"></i></a>
-            <button data-renew="${m.id}" title="تجديد 30 يوم" class="touch-btn w-9 h-9 grid place-items-center rounded-xl" style="background:rgba(34,197,94,0.12);color:#22c55e"><i class="fas fa-rotate-right"></i></button>
-            <button data-del="${m.id}" title="حذف" class="touch-btn w-9 h-9 grid place-items-center rounded-xl" style="background:rgba(239,68,68,0.12);color:#ef4444"><i class="fas fa-trash"></i></button>
+            <a href="/admin/edit.html?id=${encodeURIComponent(m.id)}" title="تعديل" class="admin-action-btn admin-action-btn--edit touch-btn w-9 h-9 grid place-items-center rounded-xl"><i class="fas fa-pen"></i></a>
+            <a href="/motorcycle.html?id=${encodeURIComponent(m.id)}" target="_blank" title="عرض" class="admin-action-btn admin-action-btn--view touch-btn w-9 h-9 grid place-items-center rounded-xl"><i class="fas fa-eye"></i></a>
+            <button data-renew="${Utils.escapeHtml(m.id)}" title="تجديد 30 يوم" class="touch-btn w-9 h-9 grid place-items-center rounded-xl" style="background:rgba(34,197,94,0.12);color:#22c55e"><i class="fas fa-rotate-right"></i></button>
+            <button data-del="${Utils.escapeHtml(m.id)}" title="حذف" class="touch-btn w-9 h-9 grid place-items-center rounded-xl" style="background:rgba(239,68,68,0.12);color:#ef4444"><i class="fas fa-trash"></i></button>
           </div>
         </td>
       </tr>`).join('');

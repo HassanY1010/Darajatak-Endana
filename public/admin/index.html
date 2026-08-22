@@ -78,10 +78,10 @@
       // أحدث الدراجات
       const { data: recent } = await API.motorcycles('limit=5&sort=newest');
       document.getElementById('recent-list').innerHTML = recent.length ? recent.map(m => `
-        <a href="/admin/edit.html?id=${m.id}" class="admin-nav-link flex items-center gap-3 p-2 rounded-xl">
-          <img src="${Utils.img(m.main_image)}" class="w-12 h-12 rounded-lg object-cover" alt="">
+        <a href="/admin/edit.html?id=${encodeURIComponent(m.id)}" class="admin-nav-link flex items-center gap-3 p-2 rounded-xl">
+          <img src="${Utils.escapeHtml(Utils.img(m.main_image))}" class="w-12 h-12 rounded-lg object-cover" alt="">
           <div class="flex-1 min-w-0">
-            <div class="font-bold truncate">${m.title}</div>
+            <div class="font-bold truncate">${Utils.escapeHtml(m.title)}</div>
             <div class="text-xs text-gray-400">${Utils.formatPrice(m.price, m.currency)}</div>
           </div>
           <span class="text-xs px-2 py-1 rounded-full ${Utils.statusBadgeClass(m.status)}">${Utils.statusLabel(m.status)}</span>
@@ -91,11 +91,11 @@
       const { data: topViewed } = await API.motorcycles('limit=5&sort=views_desc');
       const maxViews = Math.max(...topViewed.map(m => m.views || 0), 1);
       document.getElementById('top-views').innerHTML = topViewed.length ? topViewed.map((m, i) => `
-        <a href="/admin/edit.html?id=${m.id}" class="admin-nav-link flex items-center gap-3 p-2 rounded-xl">
+        <a href="/admin/edit.html?id=${encodeURIComponent(m.id)}" class="admin-nav-link flex items-center gap-3 p-2 rounded-xl">
           <div class="w-6 text-center font-black text-sm ${i === 0 ? 'text-gold' : 'text-gray-500'}">${i + 1}</div>
-          <img src="${Utils.img(m.main_image)}" class="w-10 h-10 rounded-lg object-cover" alt="">
+          <img src="${Utils.escapeHtml(Utils.img(m.main_image))}" class="w-10 h-10 rounded-lg object-cover" alt="">
           <div class="flex-1 min-w-0">
-            <div class="text-sm font-bold truncate">${m.title}</div>
+            <div class="text-sm font-bold truncate">${Utils.escapeHtml(m.title)}</div>
             <div class="flex items-center gap-2 mt-1">
               <div class="flex-1 h-1.5 admin-progress-track rounded-full overflow-hidden">
                 <div class="h-full bg-gradient-to-l from-gold to-yellow-300 rounded-full" style="width:${((m.views||0)/maxViews*100).toFixed(1)}%"></div>

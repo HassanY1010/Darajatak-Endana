@@ -1,4 +1,4 @@
-// متحكّم كاش ومعالجة الصور المتقدم — حماية Egress وتحسين الأداء
+// متحكّم كاش ومعالجة الصور المتقدم — حماية Egress وتحسين الأداء ومنع الـ Stampede
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -36,6 +36,54 @@ try {
 }
 
 /**
+ * عدادات المراقبة والقياس (Observability Metrics)
+ */
+const Metrics = {
+  cacheHit: 0,
+  cacheMiss: 0,
+  originFetch: 0,
+  dedupWait: 0,
+  cacheCorrupted: 0,
+  originError: 0,
+  http304: 0,
+  getSummary() {
+    return {
+      cacheHit: this.cacheHit,
+      cacheMiss: this.cacheMiss,
+      originFetch: this.originFetch,
+      dedupWait: this.dedupWait,
+      cacheCorrupted: this.cacheCorrupted,
+      originError: this.originError,
+      http304: this.http304
+    };
+  },
+  reset() {
+    this.cacheHit = 0;
+    this.cacheMiss = 0;
+    this.originFetch = 0;
+    this.dedupWait = 0;
+    this.cacheCorrupted = 0;
+    this.originError = 0;
+    this.http304 = 0;
+  }
+};
+
+/**
+ * فحص سلامة الملف المخزن في الكاش (Corrupted Cache Protection)
+ */
+function isValidCachedFile(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return false;
+    const stat = fs.statSync(filePath);
+    // الملف التالف أو الفارغ (0 bytes)
+    if (!stat.isFile() || stat.size < 32) return false;
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
  * كتابة آمنة وذرية للملف في الكاش عبر ملف مؤقت ثم Rename
  */
 function atomicWriteFileSync(targetPath, buffer) {
@@ -56,14 +104,10 @@ function atomicWriteFileSync(targetPath, buffer) {
 }
 
 /**
- * جلب الصورة من Supabase Storage وحفظها محلياً مع Single-Flight Lock
+ * طلب واحد من Supabase مع Timeout
  */
-function fetchFromSupabase(filename) {
-  if (inFlightFetches.has(filename)) {
-    return inFlightFetches.get(filename);
-  }
-
-  const promise = new Promise((resolve, reject) => {
+function singleRequestSupabase(filename) {
+  return new Promise((resolve, reject) => {
     if (!config.supabase.url || !config.supabase.bucket) {
       return reject(new Error('Supabase configuration is missing.'));
     }
@@ -89,7 +133,51 @@ function fetchFromSupabase(filename) {
     req.setTimeout(8000, () => {
       req.destroy(new Error('Request timeout fetching image from Supabase'));
     });
-  }).finally(() => {
+  });
+}
+
+/**
+ * جلب الصورة من Supabase Storage مع Retry محدود و Single-Flight Lock
+ */
+function fetchFromSupabase(filename) {
+  if (inFlightFetches.has(filename)) {
+    Metrics.dedupWait++;
+    console.log(`[IMAGE_DEDUP_WAIT] Coalescing duplicate fetch for: ${filename}`);
+    return inFlightFetches.get(filename);
+  }
+
+  Metrics.originFetch++;
+  console.log(`[IMAGE_ORIGIN_FETCH] Fetching from Supabase origin: ${filename}`);
+
+  const promise = (async () => {
+    let attempts = 0;
+    const maxAttempts = 2; // محاولة أساسية + إعادة محاولة واحدة للأخطاء المؤقتة
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      try {
+        const res = await singleRequestSupabase(filename);
+        if (res.status === 200 && res.buffer && res.buffer.length > 0) {
+          return res;
+        }
+        if (res.status === 404 || res.status === 400) {
+          return { status: 404, buffer: null, contentType: null }; // 404 لا يعاد محاولتها وتُرجع 404 مباشرة
+        }
+        if (attempts >= maxAttempts) {
+          return res;
+        }
+      } catch (err) {
+        if (attempts >= maxAttempts) {
+          Metrics.originError++;
+          console.error(`[IMAGE_ORIGIN_ERROR] Failed fetching ${filename} after ${attempts} attempts:`, err.message);
+          throw err;
+        }
+        // انتظار 300ms قبل إعادة المحاولة
+        await new Promise(r => setTimeout(r, 300));
+      }
+    }
+    return { status: 502, buffer: null, contentType: null };
+  })().finally(() => {
     inFlightFetches.delete(filename);
   });
 
@@ -98,34 +186,44 @@ function fetchFromSupabase(filename) {
 }
 
 /**
- * توليد ETag موحد
+ * توليد ETag موحد ومستقر يعتمد على المحتوى
  */
 function generateETag(buffer) {
-  return crypto.createHash('md5').update(buffer).digest('hex');
+  return `"${crypto.createHash('md5').update(buffer).digest('hex')}"`;
 }
 
 /**
- * جلب وتأكيد توفر الملف الأصلي محلياً في الكاش (Single Origin Fetch)
+ * جلب وتأكيد توفر الملف الأصلي محلياً في الكاش مع حماية Corrupted Cache
  */
 async function getOrFetchOriginal(filename, ext) {
   const originalPath = path.join(CACHE_DIR, filename);
   let contentType = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
 
+  // 1. التحقق من سلامة الملف إذا كان موجوداً
   if (fs.existsSync(originalPath)) {
-    return { buffer: fs.readFileSync(originalPath), contentType };
+    if (isValidCachedFile(originalPath)) {
+      try {
+        const buffer = fs.readFileSync(originalPath);
+        return { buffer, contentType };
+      } catch (_) {}
+    } else {
+      Metrics.cacheCorrupted++;
+      console.warn(`[IMAGE_CACHE_CORRUPTED] Detected corrupted cache file: ${originalPath}. Removing.`);
+      try { fs.unlinkSync(originalPath); } catch (_) {}
+    }
   }
 
-  // فحص الصور المرفوعة محلياً مسبقاً (إرث)
+  // 2. فحص الصور المرفوعة محلياً مسبقاً (إرث)
   const localUploadPath = path.join(config.upload.dir, filename);
-  if (fs.existsSync(localUploadPath)) {
+  if (fs.existsSync(localUploadPath) && isValidCachedFile(localUploadPath)) {
     const originalBuffer = fs.readFileSync(localUploadPath);
     atomicWriteFileSync(originalPath, originalBuffer);
     return { buffer: originalBuffer, contentType };
   }
 
-  // جلب من Supabase مع Single-Flight Lock
+  // 3. جلب من Supabase مع Single-Flight Lock
   const result = await fetchFromSupabase(filename);
-  if (result.status !== 200 || !result.buffer) {
+  if (result.status !== 200 || !result.buffer || result.buffer.length === 0) {
     const err = new Error(result.status === 404 ? 'Image not found' : 'Image not available');
     err.status = result.status === 404 ? 404 : 502;
     throw err;
@@ -137,6 +235,8 @@ async function getOrFetchOriginal(filename, ext) {
 }
 
 const ImageController = {
+  Metrics,
+
   /**
    * تقديم صورة مع كاش محلي وتحسين الحجم (Proxy + Thumbnailing + In-Flight Deduplication)
    */
@@ -171,25 +271,43 @@ const ImageController = {
       const cacheFilename = width ? `${baseName}_w${width}${ext}` : filename;
       const cachePath = path.join(CACHE_DIR, cacheFilename);
 
-      // 1. التحقق إن كان الملف موجوداً مسبقاً في كاش السيرفر (Cache HIT)
-      if (fs.existsSync(cachePath)) {
-        const stat = fs.statSync(cachePath);
-        const etag = `"${stat.size}-${stat.mtimeMs}"`;
-
-        if (req.headers['if-none-match'] === etag) {
-          return res.status(304).end();
+      // 1. التحقق إن كان الملف موجوداً وسليماً في كاش السيرفر (Cache HIT)
+      if (isValidCachedFile(cachePath)) {
+        Metrics.cacheHit++;
+        console.log(`[IMAGE_CACHE_HIT] Serving from local disk: ${cacheFilename}`);
+        
+        let buffer;
+        try {
+          buffer = fs.readFileSync(cachePath);
+        } catch (readErr) {
+          Metrics.cacheCorrupted++;
+          try { fs.unlinkSync(cachePath); } catch (_) {}
+          buffer = null;
         }
 
-        res.set({
-          'Content-Type': ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg',
-          'Cache-Control': 'public, max-age=31536000, immutable',
-          'ETag': etag,
-          'X-Cache': 'HIT-SERVER'
-        });
-        return fs.createReadStream(cachePath).pipe(res);
+        if (buffer) {
+          const etag = generateETag(buffer);
+
+          if (req.headers['if-none-match'] === etag) {
+            Metrics.http304++;
+            console.log(`[IMAGE_304] Client cache matched ETag: ${etag}`);
+            return res.status(304).end();
+          }
+
+          res.set({
+            'Content-Type': ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg',
+            'Cache-Control': 'public, max-age=31536000, immutable',
+            'ETag': etag,
+            'X-Cache': 'HIT-SERVER'
+          });
+          return res.end(buffer);
+        }
       }
 
-      // 2. معالجة الطلب المتزامن عبر In-Flight Processing Lock لكل Variant
+      // 2. معالجة Cache MISS عبر In-Flight Processing Lock
+      Metrics.cacheMiss++;
+      console.log(`[IMAGE_CACHE_MISS] Processing required for: ${cacheFilename}`);
+
       const requestKey = `${filename}_w${width || 'orig'}`;
       let processingPromise = inFlightProcessing.get(requestKey);
 
@@ -227,12 +345,17 @@ const ImageController = {
         });
 
         inFlightProcessing.set(requestKey, processingPromise);
+      } else {
+        Metrics.dedupWait++;
+        console.log(`[IMAGE_DEDUP_WAIT] Coalescing processing for: ${requestKey}`);
       }
 
       const result = await processingPromise;
-      const etag = `"${generateETag(result.buffer)}"`;
+      const etag = generateETag(result.buffer);
 
       if (req.headers['if-none-match'] === etag) {
+        Metrics.http304++;
+        console.log(`[IMAGE_304] Freshly processed image matched ETag: ${etag}`);
         return res.status(304).end();
       }
 
@@ -249,6 +372,7 @@ const ImageController = {
       if (err.status) {
         return res.status(err.status).json({ error: err.message });
       }
+      Metrics.originError++;
       console.error('❌ خطأ في تقديم الصورة:', err.message);
       if (!res.headersSent) {
         res.status(500).json({ error: 'Internal server error processing image' });
@@ -290,3 +414,4 @@ const ImageController = {
 };
 
 module.exports = ImageController;
+

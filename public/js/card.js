@@ -6,8 +6,8 @@ function renderCard(m) {
   const isSold = m.status === 'sold';
 
   return `
-    <div class="moto-card" data-id="${m.id}">
-      <a href="/motorcycle.html?id=${m.id}" class="moto-card-img">
+    <div class="moto-card" data-id="${Utils.escapeHtml(m.id)}">
+      <a href="/motorcycle.html?id=${encodeURIComponent(m.id)}" class="moto-card-img">
         ${Utils.imgTag(m.main_image, m.title, 'moto-card-img-el', '', true)}
         <span class="moto-card-status">
           ${isSold
@@ -15,15 +15,15 @@ function renderCard(m) {
             : '<span class="badge-available">متاح</span>'
           }
         </span>
-        <button class="moto-card-fav ${isFav ? 'fav-active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleFav(${m.id}, this)" title="المفضّلة">
+        <button class="moto-card-fav ${isFav ? 'fav-active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleFav(${encodeURIComponent(m.id)}, this)" title="المفضّلة">
           <i class="fa${isFav ? 's' : 'r'} fa-heart"></i>
         </button>
       </a>
       <div class="moto-card-body">
-        <div class="moto-card-title" title="${m.title}">${m.title}</div>
+        <div class="moto-card-title" title="${Utils.escapeHtml(m.title)}">${Utils.escapeHtml(m.title)}</div>
         <div class="moto-card-price">${Utils.formatPrice(m.price, m.currency)}</div>
-        ${m.city ? `<div class="moto-card-city"><i class="fas fa-location-dot"></i> ${m.city}</div>` : ''}
-        <a href="${waLink}" target="_blank" class="btn-whatsapp moto-card-wa ${isSold ? 'opacity-50 pointer-events-none' : 'whatsapp-pulse'}" onclick="event.stopPropagation()">
+        ${m.city ? `<div class="moto-card-city"><i class="fas fa-location-dot"></i> ${Utils.escapeHtml(m.city)}</div>` : ''}
+        <a href="${Utils.escapeHtml(waLink)}" target="_blank" class="btn-whatsapp moto-card-wa ${isSold ? 'opacity-50 pointer-events-none' : 'whatsapp-pulse'}" onclick="event.stopPropagation()">
           <i class="fab fa-whatsapp"></i> تواصل
         </a>
       </div>

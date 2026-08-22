@@ -70,7 +70,7 @@ const Admin = {
       </a>`;
     mount.innerHTML = `
       <div class="flex items-center gap-2 px-2 py-4 mb-2 border-b border-white/10">
-        ${this.site.logo_url ? '<img src="' + this.site.logo_url + '" alt="دراجتك عندنا" style="height:36px;max-width:120px;object-fit:contain;margin-left:6px"><span class="font-extrabold gold-text-gradient">لوحة التحكم</span>' : '<span class="text-2xl">🏍️</span><span class="font-extrabold gold-text-gradient">لوحة التحكم</span>'}
+        ${this.site.logo_url ? '<img src="' + Utils.escapeHtml(Utils.img(this.site.logo_url)) + '" alt="دراجتك عندنا" style="height:36px;max-width:120px;object-fit:contain;margin-left:6px"><span class="font-extrabold gold-text-gradient">لوحة التحكم</span>' : '<span class="text-2xl">🏍️</span><span class="font-extrabold gold-text-gradient">لوحة التحكم</span>'}
       </div>
       <nav class="space-y-1">
         ${item('/admin/', 'fa-gauge-high', 'الرئيسية', 'dashboard')}

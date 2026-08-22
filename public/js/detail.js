@@ -22,17 +22,23 @@
     const waLink = Utils.whatsappLink(phone, m);
 
     document.title = m.title + ' | دراجتك عندنا';
-    setMeta('description', m.title + ' — ' + m.brand + ' بسعر ' + Utils.formatPrice(m.price, m.currency));
+    setMeta('description', m.title + ' — ' + (m.brand || '') + ' بسعر ' + Utils.formatPrice(m.price, m.currency));
     setMeta('og:title', m.title + ' | دراجتك عندنا');
-    setMeta('og:description', m.brand);
+    setMeta('og:description', m.brand || '');
     setMeta('og:image', Utils.img(m.main_image, false));
     setMeta('og:url', location.href);
+
+    const safeTitle = Utils.escapeHtml(m.title);
+    const safeBrand = Utils.escapeHtml(m.brand);
+    const safeCity = Utils.escapeHtml(m.city);
+    const safeAdNumber = Utils.escapeHtml(m.ad_number);
+    const safeDesc = m.description ? Utils.escapeHtml(m.description).replace(/\n/g, '<br>') : '';
 
     document.getElementById('detail').innerHTML = `
       <div class="breadcrumb">
         <a href="/">الرئيسية</a> <i class="fas fa-chevron-left" style="font-size:.6rem;"></i>
         <a href="/motorcycles.html">الدراجات</a> <i class="fas fa-chevron-left" style="font-size:.6rem;"></i>
-        <span style="color:var(--primary)">${m.title}</span>
+        <span style="color:var(--primary)">${safeTitle}</span>
       </div>
 
       <div class="detail-body">
@@ -40,7 +46,7 @@
         ${Utils.imgTag(mainImg, m.title, 'detail-main-img', 'id="main-image"', false)}
         ${images.length > 1 ? `
         <div class="detail-thumbs">
-          ${images.map((url, i) => Utils.imgTag(url, 'صورة ' + (i+1), (url === mainImg ? 'active' : ''), 'data-url="' + url + '"', true)).join('')}
+          ${images.map((url, i) => Utils.imgTag(url, 'صورة ' + (i+1), (url === mainImg ? 'active' : ''), 'data-url="' + Utils.escapeHtml(url) + '"', true)).join('')}
         </div>
         <div style="display:flex;gap:8px;">
           <button id="prev-img" class="btn-primary" style="height:40px;padding:0 16px;font-size:.85rem;flex:1;border-radius:10px;"><i class="fas fa-chevron-right"></i> السابق</button>
@@ -51,22 +57,22 @@
       <div class="detail-info">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
           ${m.status === 'sold' ? '<span class="badge-sold">تم البيع</span>' : '<span class="badge-available">متاح</span>'}
-          ${m.ad_number ? `<span class="badge-ad-number">رقم العرض: ${m.ad_number}</span>` : ''}
+          ${safeAdNumber ? `<span class="badge-ad-number">رقم العرض: ${safeAdNumber}</span>` : ''}
           <span class="text-muted" style="font-size:.8rem;"><i class="fas fa-eye"></i> ${(m.views||0).toLocaleString('ar-SA')}</span>
         </div>
 
-        <h1 class="detail-title">${m.title}</h1>
+        <h1 class="detail-title">${safeTitle}</h1>
         <div class="detail-price">${Utils.formatPrice(m.price, m.currency)}</div>
 
         <div class="detail-specs">
-          ${m.brand ? '<div class="detail-spec"><div class="detail-spec-label">الشركة</div><div class="detail-spec-value">' + m.brand + '</div></div>' : ''}
-          ${m.city ? '<div class="detail-spec"><div class="detail-spec-label">المدينة</div><div class="detail-spec-value">' + m.city + '</div></div>' : ''}
+          ${safeBrand ? '<div class="detail-spec"><div class="detail-spec-label">الشركة</div><div class="detail-spec-value">' + safeBrand + '</div></div>' : ''}
+          ${safeCity ? '<div class="detail-spec"><div class="detail-spec-label">المدينة</div><div class="detail-spec-value">' + safeCity + '</div></div>' : ''}
         </div>
 
-        ${m.description ? '<div class="detail-desc">' + m.description + '</div>' : ''}
+        ${safeDesc ? '<div class="detail-desc">' + safeDesc + '</div>' : ''}
 
         <div class="detail-actions">
-          <a href="${waLink}" target="_blank" class="btn-whatsapp whatsapp-pulse ${m.status === 'sold' ? 'opacity-50 pointer-events-none' : ''}">
+          <a href="${Utils.escapeHtml(waLink)}" target="_blank" class="btn-whatsapp whatsapp-pulse ${m.status === 'sold' ? 'opacity-50 pointer-events-none' : ''}">
             <i class="fab fa-whatsapp"></i> تواصل مع المشرف
           </a>
           <button class="detail-share" onclick="navigator.clipboard.writeText(location.href).then(()=>Utils.toast('تم نسخ الرابط','success')).catch(()=>Utils.toast('فشل نسخ الرابط','error'))">

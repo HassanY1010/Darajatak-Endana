@@ -95,6 +95,20 @@ const API = {
 
 // ===== أدوات مساعدة عامة =====
 const Utils = {
+  // دالة تشفير وتطهير الـ HTML لمنع ثغرات XSS
+  escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  },
+  esc(str) {
+    return this.escapeHtml(str);
+  },
+
   formatPrice(n, currency) {
     const num = Number(n || 0);
     const label = currency === 'YER' ? 'ريال يمني' : 'ريال سعودي';
