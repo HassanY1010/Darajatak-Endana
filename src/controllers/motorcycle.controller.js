@@ -99,6 +99,44 @@ const MotorcycleController = {
     }
   },
 
+  // ===== تسجيل نقرات زر «تواصل» (واتساب) =====
+  async trackContact(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await MotorcycleModel.recordContactClick(id, req.ip);
+      // إرجاع استجابة بنجاح حتى لا يتعطل العميل
+      res.json({ success: true, ...result });
+    } catch (err) {
+      // عدم إيقاف تجربة المستخدم، لكن تسجيل الخطأ
+      console.error('Error tracking contact click:', err.message);
+      res.json({ success: false, message: 'حدث خطأ أثناء التسجيل', error: err.message });
+    }
+  },
+
+  // ===== إحصائيات نقرات التواصل الخاصة بلوحة التحكم =====
+  async getContactAnalytics(req, res) {
+    try {
+      const AdminModel = require('../models/admin.model');
+      const admin = await AdminModel.findById(req.admin.id);
+      if (!admin) {
+        return res.status(401).json({ success: false, message: 'المشرف غير موجود' });
+      }
+
+      const { period } = req.query;
+      const analytics = await MotorcycleModel.getContactAnalytics({
+        adminId: admin.id,
+        supervisorType: admin.supervisor_type,
+        adminRole: admin.role,
+        adminEmail: admin.email,
+        period: period || 'all'
+      });
+
+      res.json({ success: true, data: analytics });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });
+    }
+  },
+
   // ===== إدارة (Admin) =====
   async create(req, res) {
     try {

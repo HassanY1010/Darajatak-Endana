@@ -488,6 +488,263 @@ const MotorcycleModel = {
       orphanDbImageRecords: orphanImagesRes.rows,
       failedStorageCleanupsCount: parseInt(failedCleanupsRes.rows[0]?.count || 0, 10)
     };
+  },
+
+  // ===== إحصائيات نقرات زر «تواصل» (واتساب) =====
+  /**
+   * تسجيل نقرة تواصل في قاعدة البيانات:
+   * تحتسب وتُسجل فقط إذا كانت الدراجة منشورة بواسطة مشرف الساحل أو مشرف الوادي.
+   * لا تسجل إطلاقاً إذا كانت منشورة بواسطة المشرف العام أو المساعد أو أي مشرف آخر.
+   */
+  async recordContactClick(motorcycleId, ipAddress = null) {
+    const motoRes = await db.query(`
+      SELECT m.id, m.title, m.created_by, a.name AS admin_name, a.email AS admin_email, a.role AS admin_role, a.supervisor_type
+      FROM motorcycles m
+      LEFT JOIN admins a ON m.created_by = a.id
+      WHERE m.id = $1
+    `, [motorcycleId]);
+
+    const moto = motoRes.rows[0];
+    if (!moto) {
+      return { counted: false, reason: 'motorcycle_not_found' };
+    }
+
+    if (!moto.created_by) {
+      return { counted: false, reason: 'no_publisher' };
+    }
+
+    // التحقق الموثوق من نوع المشرف:
+    // 1. اعتماد عمود supervisor_type كمعيار رئيسي
+    // 2. فحص الاسم أو البريد كطبقة أمان ثنائية
+    const isCoast = moto.supervisor_type === 'coast' ||
+      (moto.admin_email && moto.admin_email.toLowerCase() === 'coast@darajtak.com') ||
+      (moto.admin_name && moto.admin_name.includes('الساحل'));
+
+    const isValley = moto.supervisor_type === 'valley' ||
+      (moto.admin_email && moto.admin_email.toLowerCase() === 'valley@darajtak.com') ||
+      (moto.admin_name && moto.admin_name.includes('الوادي'));
+
+    let supervisorCategory = null;
+    if (isCoast) {
+      supervisorCategory = 'coast';
+    } else if (isValley) {
+      supervisorCategory = 'valley';
+    }
+
+    // إذا لم يكن الساحل ولا الوادي (المشرف العام، المساعد، أو غيرهما) -> لا تسجل النقرة نهائياً
+    if (!supervisorCategory) {
+      return { counted: false, reason: 'excluded_admin', admin_id: moto.created_by };
+    }
+
+    // تسجيل النقرة في جدول contact_clicks مع حفظ الدراجة ومعرف المشرف والوقت
+    await db.query(`
+      INSERT INTO contact_clicks (motorcycle_id, admin_id, ip_address, created_at)
+      VALUES ($1, $2, $3, NOW())
+    `, [moto.id, moto.created_by, ipAddress]);
+
+    return {
+      counted: true,
+      category: supervisorCategory,
+      motorcycle_id: moto.id,
+      admin_id: moto.created_by
+    };
+  },
+
+  /**
+   * جلب إحصائيات نقرات التواصل مع عزل الصلاحيات ودعم الفترات الزمنية
+   * الفترات تعتمد على contact_clicks.created_at
+   */
+  async getContactAnalytics({ adminId, supervisorType, adminRole, adminEmail, period = 'all' } = {}) {
+    // 1. تحديد قيود المشرف الحالي
+    const isCoastAdmin = supervisorType === 'coast' ||
+      (adminEmail && adminEmail.toLowerCase() === 'coast@darajtak.com');
+    const isValleyAdmin = supervisorType === 'valley' ||
+      (adminEmail && adminEmail.toLowerCase() === 'valley@darajtak.com');
+    const isGeneralAdmin = adminRole === 'admin';
+
+    // المشرفان الآخران (المساعد أو أي مشرف ليس الساحل ولا الوادي ولا المشرف العام):
+    // إحصائياتهم 0 وقائمة فارغة
+    if (!isCoastAdmin && !isValleyAdmin && !isGeneralAdmin) {
+      return {
+        role_type: 'excluded',
+        period,
+        totalClicks: 0,
+        coastClicks: 0,
+        valleyClicks: 0,
+        publishedMotorcycles: 0,
+        motorcycles: []
+      };
+    }
+
+    // 2. بناء شرط الفترة الزمنية بناءً على تاريخ النقرة contact_clicks.created_at
+    let timeCondition = '';
+    if (period === 'today') {
+      timeCondition = "AND c.created_at >= CURRENT_DATE";
+    } else if (period === '7days') {
+      timeCondition = "AND c.created_at >= NOW() - INTERVAL '7 days'";
+    } else if (period === '30days') {
+      timeCondition = "AND c.created_at >= NOW() - INTERVAL '30 days'";
+    } else if (period === 'month') {
+      timeCondition = "AND c.created_at >= DATE_TRUNC('month', NOW())";
+    }
+
+    // 3. تحديد المشرفين المستهدفين حسب صلاحيات المستخدم
+    if (isCoastAdmin) {
+      // مشرف الساحل: دراجاته فقط
+      const summaryRes = await db.query(`
+        SELECT COUNT(c.id) AS total_clicks
+        FROM contact_clicks c
+        JOIN admins a ON c.admin_id = a.id
+        WHERE (a.id = $1 OR a.supervisor_type = 'coast' OR a.email = 'coast@darajtak.com')
+        ${timeCondition}
+      `, [adminId]);
+
+      const totalClicks = parseInt(summaryRes.rows[0]?.total_clicks || 0, 10);
+
+      const countMotosRes = await db.query(`
+        SELECT COUNT(*) AS c FROM motorcycles m
+        JOIN admins a ON m.created_by = a.id
+        WHERE (a.id = $1 OR a.supervisor_type = 'coast' OR a.email = 'coast@darajtak.com')
+      `, [adminId]);
+      const publishedMotos = parseInt(countMotosRes.rows[0]?.c || 0, 10);
+
+      // جدول الدراجات مع عدد النقرات في الفترة المحددة
+      const listRes = await db.query(`
+        SELECT 
+          m.id, m.title, m.brand, m.price, m.currency, m.status, m.main_image, m.ad_number, m.city, m.created_at,
+          a.name AS admin_name, 'مشرف الساحل' AS publisher_label,
+          COUNT(c.id) AS contact_clicks
+        FROM motorcycles m
+        JOIN admins a ON m.created_by = a.id
+        LEFT JOIN contact_clicks c ON c.motorcycle_id = m.id ${timeCondition}
+        WHERE (a.id = $1 OR a.supervisor_type = 'coast' OR a.email = 'coast@darajtak.com')
+        GROUP BY m.id, a.name
+        ORDER BY contact_clicks DESC, m.created_at DESC
+      `, [adminId]);
+
+      return {
+        role_type: 'coast',
+        period,
+        totalClicks,
+        coastClicks: totalClicks,
+        valleyClicks: 0,
+        publishedMotorcycles: publishedMotos,
+        motorcycles: listRes.rows.map(r => ({
+          ...r,
+          contact_clicks: parseInt(r.contact_clicks || 0, 10)
+        }))
+      };
+    } else if (isValleyAdmin) {
+      // مشرف الوادي: دراجاته فقط
+      const summaryRes = await db.query(`
+        SELECT COUNT(c.id) AS total_clicks
+        FROM contact_clicks c
+        JOIN admins a ON c.admin_id = a.id
+        WHERE (a.id = $1 OR a.supervisor_type = 'valley' OR a.email = 'valley@darajtak.com')
+        ${timeCondition}
+      `, [adminId]);
+
+      const totalClicks = parseInt(summaryRes.rows[0]?.total_clicks || 0, 10);
+
+      const countMotosRes = await db.query(`
+        SELECT COUNT(*) AS c FROM motorcycles m
+        JOIN admins a ON m.created_by = a.id
+        WHERE (a.id = $1 OR a.supervisor_type = 'valley' OR a.email = 'valley@darajtak.com')
+      `, [adminId]);
+      const publishedMotos = parseInt(countMotosRes.rows[0]?.c || 0, 10);
+
+      const listRes = await db.query(`
+        SELECT 
+          m.id, m.title, m.brand, m.price, m.currency, m.status, m.main_image, m.ad_number, m.city, m.created_at,
+          a.name AS admin_name, 'مشرف الوادي' AS publisher_label,
+          COUNT(c.id) AS contact_clicks
+        FROM motorcycles m
+        JOIN admins a ON m.created_by = a.id
+        LEFT JOIN contact_clicks c ON c.motorcycle_id = m.id ${timeCondition}
+        WHERE (a.id = $1 OR a.supervisor_type = 'valley' OR a.email = 'valley@darajtak.com')
+        GROUP BY m.id, a.name
+        ORDER BY contact_clicks DESC, m.created_at DESC
+      `, [adminId]);
+
+      return {
+        role_type: 'valley',
+        period,
+        totalClicks,
+        coastClicks: 0,
+        valleyClicks: totalClicks,
+        publishedMotorcycles: publishedMotos,
+        motorcycles: listRes.rows.map(r => ({
+          ...r,
+          contact_clicks: parseInt(r.contact_clicks || 0, 10)
+        }))
+      };
+    } else if (isGeneralAdmin) {
+      // المشرف العام: ملخص الساحل والوادي فقط (مع استبعاد أي نقرات أخرى إن وجدت)
+      const summaryRes = await db.query(`
+        SELECT 
+          COUNT(CASE WHEN (a.supervisor_type = 'coast' OR a.email = 'coast@darajtak.com' OR a.name ILIKE '%الساحل%') THEN 1 END) AS coast_clicks,
+          COUNT(CASE WHEN (a.supervisor_type = 'valley' OR a.email = 'valley@darajtak.com' OR a.name ILIKE '%الوادي%') THEN 1 END) AS valley_clicks
+        FROM contact_clicks c
+        JOIN admins a ON c.admin_id = a.id
+        WHERE (
+          a.supervisor_type IN ('coast', 'valley') OR 
+          a.email IN ('coast@darajtak.com', 'valley@darajtak.com') OR
+          a.name ILIKE '%الساحل%' OR a.name ILIKE '%الوادي%'
+        )
+        ${timeCondition}
+      `);
+
+      const coastClicks = parseInt(summaryRes.rows[0]?.coast_clicks || 0, 10);
+      const valleyClicks = parseInt(summaryRes.rows[0]?.valley_clicks || 0, 10);
+      const totalClicks = coastClicks + valleyClicks;
+
+      const countMotosRes = await db.query(`
+        SELECT COUNT(*) AS c FROM motorcycles m
+        JOIN admins a ON m.created_by = a.id
+        WHERE (
+          a.supervisor_type IN ('coast', 'valley') OR 
+          a.email IN ('coast@darajtak.com', 'valley@darajtak.com') OR
+          a.name ILIKE '%الساحل%' OR a.name ILIKE '%الوادي%'
+        )
+      `);
+      const publishedMotos = parseInt(countMotosRes.rows[0]?.c || 0, 10);
+
+      // قائمة الدراجات التابعة للساحل والوادي فقط
+      const listRes = await db.query(`
+        SELECT 
+          m.id, m.title, m.brand, m.price, m.currency, m.status, m.main_image, m.ad_number, m.city, m.created_at,
+          a.name AS admin_name,
+          CASE 
+            WHEN (a.supervisor_type = 'coast' OR a.email = 'coast@darajtak.com' OR a.name ILIKE '%الساحل%') THEN 'مشرف الساحل'
+            WHEN (a.supervisor_type = 'valley' OR a.email = 'valley@darajtak.com' OR a.name ILIKE '%الوادي%') THEN 'مشرف الوادي'
+            ELSE 'أخرى'
+          END AS publisher_label,
+          COUNT(c.id) AS contact_clicks
+        FROM motorcycles m
+        JOIN admins a ON m.created_by = a.id
+        LEFT JOIN contact_clicks c ON c.motorcycle_id = m.id ${timeCondition}
+        WHERE (
+          a.supervisor_type IN ('coast', 'valley') OR 
+          a.email IN ('coast@darajtak.com', 'valley@darajtak.com') OR
+          a.name ILIKE '%الساحل%' OR a.name ILIKE '%الوادي%'
+        )
+        GROUP BY m.id, a.name, a.supervisor_type, a.email
+        ORDER BY contact_clicks DESC, m.created_at DESC
+      `);
+
+      return {
+        role_type: 'admin',
+        period,
+        totalClicks,
+        coastClicks,
+        valleyClicks,
+        publishedMotorcycles: publishedMotos,
+        motorcycles: listRes.rows.map(r => ({
+          ...r,
+          contact_clicks: parseInt(r.contact_clicks || 0, 10)
+        }))
+      };
+    }
   }
 };
 

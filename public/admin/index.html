@@ -31,7 +31,7 @@
 
         <section id="stat-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"></section>
 
-        <section class="grid lg:grid-cols-2 gap-6">
+        <section class="grid lg:grid-cols-2 gap-6 mb-8">
           <div class="bg-[#141417] border border-white/10 rounded-2xl p-6">
             <h2 class="font-bold mb-4 flex items-center gap-2"><i class="fas fa-fire text-gold"></i> الأكثر مشاهدة</h2>
             <div id="top-views" class="space-y-2"><div class="spinner"></div></div>
@@ -41,12 +41,53 @@
             <div id="recent-list" class="space-y-3"><div class="spinner"></div></div>
           </div>
         </section>
+
+        <!-- قسم إحصائيات التواصل (واتساب) -->
+        <section id="contact-analytics-section" class="bg-[#141417] border border-white/10 rounded-2xl p-6 mb-8">
+          <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <div>
+              <h2 class="text-xl font-black flex items-center gap-2 m-0">
+                <i class="fab fa-whatsapp text-green-400"></i> إحصائيات <span class="gold-text-gradient">التواصل</span>
+              </h2>
+              <p class="text-xs text-gray-400 mt-1">تتبع نقرات زر «تواصل» المخصصة لدراجات الساحل والوادي من قاعدة البيانات</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <label for="contact-period" class="text-xs text-gray-400 font-bold">الفترة:</label>
+              <select id="contact-period" class="bg-[#0b0b0d] border border-white/10 rounded-xl py-1.5 px-3 text-sm focus:border-gold outline-none">
+                <option value="all">كل الأوقات</option>
+                <option value="today">اليوم</option>
+                <option value="7days">آخر 7 أيام</option>
+                <option value="30days">آخر 30 يوماً</option>
+                <option value="month">هذا الشهر</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="contact-stat-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+
+          <div id="contact-table-wrap" class="overflow-x-auto border border-white/5 rounded-xl">
+            <table class="w-full text-sm resp-table">
+              <thead class="bg-white/5 text-gray-400">
+                <tr>
+                  <th class="text-right p-3">الدراجة</th>
+                  <th class="text-right p-3">المشرف الناشر</th>
+                  <th class="text-center p-3">نقرات التواصل</th>
+                  <th class="text-right p-3">السعر</th>
+                  <th class="text-right p-3">الحالة</th>
+                </tr>
+              </thead>
+              <tbody id="contact-tbody">
+                <tr><td colspan="5" class="p-8 text-center"><div class="spinner mx-auto"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </div>
   </div>
 
-  <script src="/js/api.js?v=4"></script>
-  <script src="/admin/js/admin.js?v=4"></script>
+  <script src="/js/api.js?v=5"></script>
+  <script src="/admin/js/admin.js?v=5"></script>
   <script>
     (async function () {
       if (!await Admin.guard()) return;
@@ -72,8 +113,6 @@
           <div class="text-3xl font-black ${c.color} leading-tight">${c.value}</div>
           <div class="text-gray-400 text-sm mt-1">${c.label}</div>
         </div>`).join('');
-
-
 
       // أحدث الدراجات
       const { data: recent } = await API.motorcycles('limit=5&sort=newest');
@@ -104,6 +143,112 @@
             </div>
           </div>
         </a>`).join('') : '<p class="text-gray-500 text-sm">لا توجد مشاهدات بعد.</p>';
+
+      // ===== إحصائيات التواصل (واتساب) =====
+      async function loadContactAnalytics(period = 'all') {
+        const cardsEl = document.getElementById('contact-stat-cards');
+        const tbodyEl = document.getElementById('contact-tbody');
+        tbodyEl.innerHTML = '<tr><td colspan="5" class="p-8 text-center"><div class="spinner mx-auto"></div></td></tr>';
+
+        try {
+          const res = await API.contactAnalytics(period);
+          const an = res.data || {};
+          const isCoast = an.role_type === 'coast';
+          const isValley = an.role_type === 'valley';
+          const isAdmin = an.role_type === 'admin';
+          const isExcluded = an.role_type === 'excluded';
+
+          // بناء البطاقات حسب نوع المشرف
+          let statList = [];
+          if (isAdmin) {
+            statList = [
+              { label: 'إجمالي النقرات', value: fmt(an.totalClicks), icon: 'fa-comments', color: 'text-green-400', sub: 'الساحل + الوادي' },
+              { label: 'نقرات الساحل', value: fmt(an.coastClicks), icon: 'fa-water', color: 'text-cyan-400', sub: 'مشرف الساحل' },
+              { label: 'نقرات الوادي', value: fmt(an.valleyClicks), icon: 'fa-mountain-sun', color: 'text-amber-400', sub: 'مشرف الوادي' },
+              { label: 'الدراجات المنشورة', value: fmt(an.publishedMotorcycles), icon: 'fa-motorcycle', color: 'text-gold', sub: 'الدراجات المحتسبة' }
+            ];
+          } else if (isCoast) {
+            statList = [
+              { label: 'إجمالي نقرات التواصل', value: fmt(an.totalClicks), icon: 'fa-comments', color: 'text-green-400', sub: 'لدراجاتك فقط' },
+              { label: 'نقرات الساحل', value: fmt(an.coastClicks), icon: 'fa-water', color: 'text-cyan-400', sub: 'إحصائياتك' },
+              { label: 'عدد الدراجات المنشورة', value: fmt(an.publishedMotorcycles), icon: 'fa-motorcycle', color: 'text-gold', sub: 'منشورة بواسطتك' }
+            ];
+          } else if (isValley) {
+            statList = [
+              { label: 'إجمالي نقرات التواصل', value: fmt(an.totalClicks), icon: 'fa-comments', color: 'text-green-400', sub: 'لدراجاتك فقط' },
+              { label: 'نقرات الوادي', value: fmt(an.valleyClicks), icon: 'fa-mountain-sun', color: 'text-amber-400', sub: 'إحصائياتك' },
+              { label: 'عدد الدراجات المنشورة', value: fmt(an.publishedMotorcycles), icon: 'fa-motorcycle', color: 'text-gold', sub: 'منشورة بواسطتك' }
+            ];
+          } else {
+            // مشرف مستثنى (المساعد أو غيره)
+            statList = [
+              { label: 'إجمالي نقرات التواصل', value: '0', icon: 'fa-comments', color: 'text-gray-400', sub: 'مستثنى من الإحصائيات' },
+              { label: 'الدراجات المحتسبة', value: '0', icon: 'fa-motorcycle', color: 'text-gray-400', sub: 'النظام مخصص للساحل والوادي' }
+            ];
+          }
+
+          cardsEl.innerHTML = statList.map(c => `
+            <div class="bg-[#0b0b0d] border border-white/10 rounded-xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <i class="fas ${c.icon} text-lg ${c.color}"></i>
+                <span class="text-[11px] text-gray-500">${c.sub}</span>
+              </div>
+              <div class="text-2xl font-black ${c.color} leading-tight">${c.value}</div>
+              <div class="text-gray-400 text-xs mt-1 font-bold">${c.label}</div>
+            </div>`).join('');
+
+          // بناء الجدول
+          if (isExcluded) {
+            tbodyEl.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400">
+              <i class="fas fa-info-circle text-gold ml-1"></i> حسابك الحالي لا يدخل ضمن نطاق إحصائيات التواصل (الميزة مخصصة لمشرفي الساحل والوادي فقط طبقاً لقواعد النظام).
+            </td></tr>`;
+            return;
+          }
+
+          const motos = an.motorcycles || [];
+          if (!motos.length) {
+            tbodyEl.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500">لا توجد دراجات مسجلة لهذه الفترة.</td></tr>';
+            return;
+          }
+
+          tbodyEl.innerHTML = motos.map(m => `
+            <tr class="admin-table-row border-t border-white/5">
+              <td class="p-3">
+                <a href="/admin/edit.html?id=${encodeURIComponent(m.id)}" class="flex items-center gap-3">
+                  <img src="${Utils.escapeHtml(Utils.img(m.main_image, true))}" class="w-10 h-10 rounded-lg object-cover" alt="">
+                  <div class="min-w-0">
+                    <div class="font-bold truncate text-white hover:text-gold transition">${Utils.escapeHtml(m.title)}</div>
+                    <div class="text-xs text-gray-400">${Utils.escapeHtml(m.brand || '')}${m.city ? ' | ' + Utils.escapeHtml(m.city) : ''}</div>
+                  </div>
+                </a>
+              </td>
+              <td class="p-3">
+                <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${m.publisher_label === 'مشرف الساحل' ? 'bg-cyan-500/10 text-cyan-400' : (m.publisher_label === 'مشرف الوادي' ? 'bg-amber-500/10 text-amber-400' : 'bg-gray-500/10 text-gray-400')}">
+                  ${Utils.escapeHtml(m.publisher_label || m.admin_name || '—')}
+                </span>
+              </td>
+              <td class="p-3 text-center">
+                <span class="font-black text-base ${m.contact_clicks > 0 ? 'text-green-400' : 'text-gray-500'}">
+                  <i class="fab fa-whatsapp text-xs ml-1"></i> ${fmt(m.contact_clicks)}
+                </span>
+              </td>
+              <td class="p-3 font-bold text-gold whitespace-nowrap">${Utils.formatPrice(m.price, m.currency)}</td>
+              <td class="p-3">
+                <span class="text-xs px-2 py-1 rounded-full ${Utils.statusBadgeClass(m.status)}">${Utils.statusLabel(m.status)}</span>
+              </td>
+            </tr>
+          `).join('');
+
+        } catch (err) {
+          tbodyEl.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">فشل تحميل إحصائيات التواصل: ${err.message}</td></tr>`;
+        }
+      }
+
+      document.getElementById('contact-period').addEventListener('change', (e) => {
+        loadContactAnalytics(e.target.value);
+      });
+
+      loadContactAnalytics('all');
     })();
   </script>
 </body>

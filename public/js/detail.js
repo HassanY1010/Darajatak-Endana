@@ -72,7 +72,7 @@
         ${safeDesc ? '<div class="detail-desc">' + safeDesc + '</div>' : ''}
 
         <div class="detail-actions">
-          <a href="${Utils.escapeHtml(waLink)}" target="_blank" class="btn-whatsapp whatsapp-pulse ${m.status === 'sold' ? 'opacity-50 pointer-events-none' : ''}">
+          <a href="${Utils.escapeHtml(waLink)}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp whatsapp-pulse ${m.status === 'sold' ? 'opacity-50 pointer-events-none' : ''}" onclick="Utils.handleContactClick(event, ${encodeURIComponent(JSON.stringify(m.id))}, this.href)">
             <i class="fab fa-whatsapp"></i> تواصل مع المشرف
           </a>
           <button class="detail-share" onclick="navigator.clipboard.writeText(location.href).then(()=>Utils.toast('تم نسخ الرابط','success')).catch(()=>Utils.toast('فشل نسخ الرابط','error'))">

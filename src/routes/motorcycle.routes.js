@@ -11,9 +11,11 @@ router.get('/', MotorcycleController.list);
 router.get('/featured', MotorcycleController.featured);
 router.get('/stats', MotorcycleController.stats);
 router.get('/filters', MotorcycleController.filters);
+router.post('/:id/contact', MotorcycleController.trackContact);
 router.get('/:id', MotorcycleController.detail);
 
 // ===== مسارات إدارية (Admin — محمية) =====
+router.get('/analytics/contacts', requireAuth, MotorcycleController.getContactAnalytics);
 router.post(
   '/',
   requireAuth,

@@ -13,7 +13,7 @@ const AdminModel = {
 
   async findById(id) {
     const res = await db.query(
-      'SELECT id, name, email, phone, role, created_at FROM admins WHERE id = $1',
+      'SELECT id, name, email, phone, role, supervisor_type, created_at FROM admins WHERE id = $1',
       [id]
     );
     return res.rows[0] || null;
@@ -52,6 +52,10 @@ const AdminModel = {
       fields.push(`role = $${idx++}`);
       params.push(data.role);
     }
+    if (data.supervisor_type != null) {
+      fields.push(`supervisor_type = $${idx++}`);
+      params.push(data.supervisor_type);
+    }
     if (data.password) {
       fields.push(`password_hash = $${idx++}`);
       const hash = await bcrypt.hash(data.password, 10);
@@ -64,7 +68,7 @@ const AdminModel = {
   },
 
   async list() {
-    const res = await db.query('SELECT id, name, email, phone, role, created_at FROM admins ORDER BY id ASC');
+    const res = await db.query('SELECT id, name, email, phone, role, supervisor_type, created_at FROM admins ORDER BY id ASC');
     return res.rows;
   },
 

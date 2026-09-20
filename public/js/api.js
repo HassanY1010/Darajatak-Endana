@@ -90,7 +90,24 @@ const API = {
   stats() { return this.get('/motorcycles/stats'); },
   filters() { return this.get('/motorcycles/filters'); },
   settings() { return this.get('/settings'); },
-  renew(id) { return this.post('/motorcycles/' + id + '/renew'); }
+  renew(id) { return this.post('/motorcycles/' + id + '/renew'); },
+  trackContact(id) {
+    const url = this.base + '/motorcycles/' + encodeURIComponent(id) + '/contact';
+    if (navigator.sendBeacon) {
+      try {
+        const sent = navigator.sendBeacon(url);
+        if (sent) return Promise.resolve({ success: true, beacon: true });
+      } catch (e) {}
+    }
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true
+    }).then(r => r.json()).catch(() => ({ success: false }));
+  },
+  contactAnalytics(period = 'all') {
+    return this.get('/motorcycles/analytics/contacts' + (period ? `?period=${encodeURIComponent(period)}` : ''));
+  }
 };
 
 // ===== أدوات مساعدة عامة =====
@@ -160,6 +177,18 @@ const Utils = {
       `هل ما زالت متاحة؟`;
     return `https://wa.me/${clean}?text=${encodeURIComponent(msg)}`;
   },
+  // معالجة ضغط زر تواصل (إرسال النقرة دون تعطيل تجربة المستخدم وتوجيهه لواتساب فوراً)
+  handleContactClick(event, motorcycleId, waHref) {
+    if (!motorcycleId) return;
+    try {
+      // إرسال طلب تتبع النقرة فوراً عبر sendBeacon أو fetch مع keepalive
+      API.trackContact(motorcycleId);
+    } catch (e) {
+      console.warn('Contact tracking error:', e);
+    }
+    // نسمح للحدث الطبيعي بفتح رابط واتساب دون أي اعتراض
+  },
+
   // ===== المفضّلة (Favorites) =====
   getFavorites() {
     try { return JSON.parse(localStorage.getItem('favs') || '[]'); } catch { return []; }

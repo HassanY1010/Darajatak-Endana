@@ -29,7 +29,7 @@ const AuthController = {
         success: true,
         message: 'تم تسجيل الدخول بنجاح',
         token,
-        admin: { id: admin.id, name: admin.name, email: admin.email, phone: admin.phone, role: admin.role }
+        admin: { id: admin.id, name: admin.name, email: admin.email, phone: admin.phone, role: admin.role, supervisor_type: admin.supervisor_type }
       });
     } catch (err) {
       res.status(500).json({ success: false, message: 'خطأ داخلي في الخادم', error: err.message });

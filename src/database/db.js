@@ -77,6 +77,14 @@ async function migrate() {
         updated_at    TIMESTAMP NOT NULL DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS contact_clicks (
+        id            SERIAL PRIMARY KEY,
+        motorcycle_id INTEGER NOT NULL REFERENCES motorcycles(id) ON DELETE CASCADE,
+        admin_id      INTEGER NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+        ip_address    TEXT,
+        created_at    TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+
       CREATE INDEX IF NOT EXISTS idx_images_moto ON images(motorcycle_id);
       CREATE INDEX IF NOT EXISTS idx_images_url ON images(image_url);
       CREATE INDEX IF NOT EXISTS idx_moto_status ON motorcycles(status);
@@ -84,6 +92,9 @@ async function migrate() {
       CREATE INDEX IF NOT EXISTS idx_moto_expires ON motorcycles(expires_at);
       CREATE INDEX IF NOT EXISTS idx_views_moto_ip ON views_log(motorcycle_id, ip_address);
       CREATE INDEX IF NOT EXISTS idx_views_created ON views_log(created_at);
+      CREATE INDEX IF NOT EXISTS idx_contact_clicks_moto ON contact_clicks(motorcycle_id);
+      CREATE INDEX IF NOT EXISTS idx_contact_clicks_admin ON contact_clicks(admin_id);
+      CREATE INDEX IF NOT EXISTS idx_contact_clicks_created ON contact_clicks(created_at);
     `);
 
     // هجرة قاعدة البيانات: حذف الأعمدة القديمة ومؤشراتها إن وجدت في البيئة الإنتاجية
@@ -95,6 +106,9 @@ async function migrate() {
       ALTER TABLE motorcycles ADD COLUMN IF NOT EXISTS ad_number TEXT;
       ALTER TABLE motorcycles ADD COLUMN IF NOT EXISTS city TEXT;
       ALTER TABLE motorcycles ADD COLUMN IF NOT EXISTS region TEXT;
+      ALTER TABLE admins ADD COLUMN IF NOT EXISTS supervisor_type TEXT;
+      UPDATE admins SET supervisor_type = 'coast' WHERE email = 'coast@darajtak.com' OR name ILIKE '%الساحل%';
+      UPDATE admins SET supervisor_type = 'valley' WHERE email = 'valley@darajtak.com' OR name ILIKE '%الوادي%';
     `);
 
     // إعدادات افتراضية للموقع
