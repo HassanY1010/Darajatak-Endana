@@ -105,6 +105,8 @@ app.get('/motorcycle.html', async (req, res, next) => {
     html = html.replace(/<meta property="og:title" content="[^"]*">/i, `<meta property="og:title" content="${title}">`);
     html = html.replace(/<meta property="og:description" content="[^"]*">/i, `<meta property="og:description" content="${description}">`);
     html = html.replace(/<meta property="og:image" content="[^"]*">/i, `<meta property="og:image" content="${imageUrl}">`);
+    html = html.replace(/<meta property="og:image:secure_url" content="[^"]*">/i, `<meta property="og:image:secure_url" content="${imageUrl}">`);
+    html = html.replace(/<meta name="twitter:image" content="[^"]*">/i, `<meta name="twitter:image" content="${imageUrl}">`);
 
     res.send(html);
   } catch (e) {
